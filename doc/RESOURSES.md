@@ -4,14 +4,14 @@ CYAN-msg server-side resources
 Overview
 --------
 
-A CYAN-msg server provides a plethora of services to each user. Each resource can be accessed via a CYAN protocol request and is represented by a string. This string looks like a path, starting at root and navigating through directories.
+A CYAN-msg server provides a plethora of services to each user. Each resource can be accessed via a CYAN protocol request and is represented by a string. This string looks like a path, starting at root and navigating through directories. Please notice, that resourses do not necessairly represent a specific file on a server-side machine, but they collectively represent a model for clients to work with.
 
 Main resourses
 --------------
 
 #### `/events`
 
-This resourse is crucial to the app. It has all events queued to be recieved by the user. Server-side should return only a part of this file that is earlier than the `LAST-UPDATE` timestamp.
+This resourse is crucial to the app. It has all events queued to be recieved by the user. Server-side should return only a part of this file that is earlier than the `LAST-UPDATE` timestamp. A request for this resourse without that header is considered not valid.
 
 #### `/resourses/<unique file id>`
 
