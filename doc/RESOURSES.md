@@ -21,6 +21,10 @@ This resourse provides access to any binary file by its ID. Before fetching, ser
 
 This resourse referenses a user and provides all public information about that user by their ID.
 
+#### `/login`
+
+This resourse enables a user to login into the messager. A `POST` request should make a new session on the server, return a one time token in a `ACK` response and put new credentials into this file. A client can later, using their one time token, access this file to get hold of the user token and other necessary login information.
+
 Additional resourses
 --------------------
 
