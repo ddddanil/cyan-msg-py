@@ -32,6 +32,7 @@ Basic conversations between client and server can be basically broken down to cl
   - `USER-TOKEN`
 - Acceptable headers
   - `ACCEPT-TYPE`
+  - `LAST-UPDATE`
 
 #### Example
 
@@ -197,3 +198,10 @@ A http-like response status code
 #### `TEXT`
 
 Textual description of the status code.
+
+#### `LAST-UPDATE`
+
+A UTC time stamp representing the last time a resource had beed accessed by a client.
+
+**Warning!**
+This header is required when accessing `/events` resourse
