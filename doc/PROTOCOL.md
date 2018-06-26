@@ -13,7 +13,7 @@ The protocol itself consists of a number of lines of ASCII characters, divided b
 
 1. Head
   - Protocol confirmation line `CYAN <version number>`
-  - Main header `<TYPE> <user link> [resourse]`
+  - Main header `<TYPE> <user link> [resource]`
   - Other headers `KEY:VALUE`
 2. Body
   - Starting marker `BIN::`
@@ -26,7 +26,7 @@ Requests and responses
 
 ### `GET` request
 
-- Requires resourse
+- Requires resource
   - TRUE
 - Has body
   - FALSE
@@ -47,7 +47,7 @@ ACCEPT-TYPE:text
 
 ### `POST` request
 
-- Requires resourse
+- Requires resource
   - FALSE
 - Has body
   - TRUE
@@ -78,7 +78,7 @@ binary file here
 
 ### `BIN` response
 
-- Requires resourse
+- Requires resource
   - TRUE
 - Has body
   - TRUE
@@ -109,7 +109,7 @@ binary file starts here
 
 ### `ACK` response
 
-- Requires resourse
+- Requires resource
   - TRUE
 - Has body
   - FALSE
@@ -135,7 +135,7 @@ TIME-SENT:880880654
 
 ### `ERR` response
 
-- Requires resourse
+- Requires resource
   - FALSE
 - Has body
   - FALSE
@@ -162,7 +162,7 @@ A token string authorising the user. In requests, this signifies a session token
 
 #### `TARGET`
 
-A user link or a specific resourse.
+A user link or a specific resource.
 
 #### `ACCEPT-TYPE` and `TYPE`
 
@@ -209,12 +209,12 @@ Textual description of the status code.
 A UTC time stamp representing the last time a resource had beed accessed by a client.
 
 **Warning!**
-This header is required when accessing `/events` resourse
+This header is required when accessing `/events` resource
 
 User links
 ----------
 
-User link is a shorthand for a resourse string. A link starting in 'u' expands into `/user/<id>`. Similarly, a link starting with a 'g' expands into `/group/<id>`.
+User link is a shorthand for a resource string. A link starting in 'u' expands into `/user/<id>`. Similarly, a link starting with a 'g' expands into `/group/<id>`.
 
 #### Example
 
