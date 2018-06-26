@@ -4,12 +4,12 @@ CYAN protocol v0.1
 Overview
 --------
 
-This protocol is made to work with CYAN-msg messaging app. It uses the 'everything is a file' ideolodgy, enabling users to share any information they want. Also, this protocol is text based, however, it can transport binary information also.
+This protocol is made to work with CYAN-msg messaging app. It uses the 'everything is a file' ideolodgy, enabling users to share any information they want. Also, this protocol is text based, however, it also can transport binary information.
 
 Basic usage
 -----------
 
-The protocol itself divides an interchange in two parts.
+The protocol itself divides an interchange into two parts.
 
 1. Head
   - Protocol confirmation line `CYAN <version number>`
@@ -19,7 +19,7 @@ The protocol itself divides an interchange in two parts.
   - Starting marker `BIN::`
   - Binary information
 
-Basic conversations between client and server can be basically broken down to client requests and consequent responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers. Any headers missing the required list will result in an `ERR` response, all unmentioned headers will be ignored.
+Basic conversations between client and server can be basically broken down to client requests and consequent responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers. Any missing headers from the required list will result in an `ERR` response, all unmentioned headers will be ignored.
 
 `GET` request
 -------------
@@ -33,11 +33,11 @@ Basic conversations between client and server can be basically broken down to cl
 - Acceptable headers
   - `ACCEPT-TYPE`
 
-##### Example
+#### Example
 
 ```s
 CYAN 0.1
-GET u0001 /source/_unique_file_id_
+GET u0001 /resources/_unique_file_id_
 USER-TOKEN:requesters_token
 ACCEPT-TYPE:text
 ```
@@ -58,7 +58,7 @@ ACCEPT-TYPE:text
 - Acceptable headers
   - None
 
-##### Example
+#### Example
 
 ```s
 CYAN 0.1
@@ -89,11 +89,11 @@ binary file here
   - `READ-STATUS`
   - `CODE`
 
-##### Example
+#### Example
 
 ```s
 CYAN 0.1
-BIN u0001 /source/_id_of_file_
+BIN u0001 /resources/_id_of_file_
 TYPE:text
 CHECKSUM:hash_of_binary
 SENDER:u0002
@@ -119,11 +119,11 @@ binary file starts here
 - Acceptable headers
   - `CODE`
 
-##### Example
+#### Example
 
 ```s
 CYAN 0.1
-ACK u0001 /sources/_ID_of_new_file_
+ACK u0001 /resources/_ID_of_new_file_
 TYPE:video
 CHECKSUM:hash_of_binary
 LENGTH:543210
@@ -142,7 +142,7 @@ TIME-SENT:880880654
 - Acceptable headers
   - `TEXT`
 
-##### Example
+#### Example
 
 ```s
 CYAN 0.1
@@ -154,46 +154,46 @@ TEXT:Forbidden
 Header specification
 --------------------
 
-### `USER-TOKEN`
+#### `USER-TOKEN`
 
 A token string authorising the user.
 
-### `ACCEPT-TYPE` and `TYPE`
+#### `ACCEPT-TYPE` and `TYPE`
 
-Following types are currently supported
+Following types of media are currently supported
 
 - `text`
 - `img`
 - `video`
 - `other`
 
-### `CHECKSUM`
+#### `CHECKSUM`
 
 A hexadecimal digest of the following binary file
 
-### `TIME-SENT`
+#### `TIME-SENT`
 
 Time the message was originally sent. This value should be a UTC time stamp.
 
-### `LENGTH`
+#### `LENGTH`
 
 Length of the following binary file in bytes.
 
-### `SENDER`
+#### `SENDER`
 
 User originally sending the message.
 
-### `READ-STATUS`
+#### `READ-STATUS`
 
 This applies only to messages sent by the requestor. Can be one of the following
 
 - `0` Not read by the recipient
 - `1` Read by the recipient
 
-### `CODE`
+#### `CODE`
 
 A http-like response status code
 
-### `TEXT`
+#### `TEXT`
 
 Textual description of the status code.
