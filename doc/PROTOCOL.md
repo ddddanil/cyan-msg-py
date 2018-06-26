@@ -45,6 +45,17 @@ USER-TOKEN:requesters_token
 ACCEPT-TYPE:text
 ```
 
+___________
+
+This is a typical `/events` request.
+
+```s
+CYAN 0.1
+GET u0001 /events
+USER-TOKEN:deadbeefcafe
+LAST-UPDATE:880880456
+```
+
 ### `POST` request
 
 - Requires resource
@@ -133,6 +144,20 @@ LENGTH:543210
 TIME-SENT:880880654
 ```
 
+_________________
+
+This is a responce to a successful `/login` request
+
+```s
+CYAN 0.1
+ACK u0003 /user/0003
+TYPE:text
+CHECKSUM:1234567890abcdef
+LENGTH:254
+TIME-SENT:880880987
+USER-TOKEN:deadbeebcafe
+```
+
 ### `ERR` response
 
 - Requires resource
@@ -166,6 +191,7 @@ A user link or a specific resource.
 
 #### `ACCEPT-TYPE` and `TYPE`
 
+Specify a type of media wanted or presented.
 Following types of media are currently supported
 
 - `text`
