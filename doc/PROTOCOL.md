@@ -161,7 +161,7 @@ A token string authorising the user.
 
 #### `TARGET`
 
-A user token or a specific resourse.
+A user link or a specific resourse.
 
 #### `ACCEPT-TYPE` and `TYPE`
 
