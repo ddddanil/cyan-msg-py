@@ -13,7 +13,7 @@ The protocol itself divides an interchange into two parts.
 
 1. Head
   - Protocol confirmation line `CYAN <version number>`
-  - Main header `<TYPE> <user> [resourse]`
+  - Main header `<TYPE> <user link> [resourse]`
   - Additional headers `KEY:VALUE`
 2. Body
   - Starting marker `BIN::`
@@ -21,8 +21,10 @@ The protocol itself divides an interchange into two parts.
 
 Basic conversations between client and server can be basically broken down to client requests and consequent responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers. Any missing headers from the required list will result in an `ERR` response, all unmentioned headers will be ignored.
 
-`GET` request
--------------
+Requests and responses
+----------------------
+
+### `GET` request
 
 - Requires resourse
   - TRUE
@@ -43,8 +45,7 @@ USER-TOKEN:requesters_token
 ACCEPT-TYPE:text
 ```
 
-`POST` request
--------------
+### `POST` request
 
 - Requires resourse
   - FALSE
@@ -75,8 +76,7 @@ BIN::
 binary file here
 ```
 
-`BIN` response
--------------
+### `BIN` response
 
 - Requires resourse
   - TRUE
@@ -107,8 +107,7 @@ BIN::
 binary file starts here
 ```
 
-`ACK` response
--------------
+### `ACK` response
 
 - Requires resourse
   - TRUE
@@ -133,8 +132,7 @@ LENGTH:543210
 TIME-SENT:880880654
 ```
 
-`ERR` response
--------------
+### `ERR` response
 
 - Requires resourse
   - FALSE
@@ -211,3 +209,13 @@ A UTC time stamp representing the last time a resource had beed accessed by a cl
 
 **Warning!**
 This header is required when accessing `/events` resourse
+
+User links
+----------
+
+User link is a shorthand for a resourse string. A link starting in 'u' expands into `/user/<id>`. Similarly, a link starting with a 'g' expands into `/group/<id>`.
+
+#### Example
+
+`u0001` -> `/user/0001`
+`g8567` -> `/group/8567`

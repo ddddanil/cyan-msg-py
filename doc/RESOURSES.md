@@ -19,11 +19,15 @@ This resourse provides access to any binary file by its ID. Before fetching, ser
 
 #### `/user/<user id>`
 
-This resourse provides all public information about a user by their ID.
+This resourse referenses a user and provides all public information about that user by their ID.
 
 Additional resourses
 --------------------
 
 #### `/settings`
 
-An updatable file containing user's settings.
+This resourse returns an updatable file containing user's settings.
+
+#### `/group/<group id>`
+
+This resourse referenses a group and provides all public information about that group by its ID.
