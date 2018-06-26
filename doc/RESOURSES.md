@@ -25,6 +25,10 @@ This resourse referenses a user and provides all public information about that u
 
 This resourse enables a user to login into the messager. A `POST` request should make a new session on the server, return a one time token in a `ACK` response and put new credentials into this file. A client can later, using their one time token, access this file to get hold of the user token and other necessary login information.
 
+#### `/register`
+
+This resource enables new users to register. In order to do that, one shoult `POST` their information to this resource. If a registration was successful, server should `ACK`nowledge it by returning a path to the new `/user/` resource.
+
 Additional resourses
 --------------------
 
