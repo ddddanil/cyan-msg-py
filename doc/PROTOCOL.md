@@ -6,20 +6,20 @@ Overview
 
 This protocol is made to work with CYAN-msg messaging app. It uses the 'everything is a file' ideolodgy, enabling users to share any information they want. Also, this protocol is text based, however, it also can transport binary information.
 
-Basic usage
------------
+Basic information
+-----------------
 
-The protocol itself divides an interchange into two parts.
+The protocol itself consists of a number of lines of ASCII characters, divided by newline characters. A packet has two parts
 
 1. Head
   - Protocol confirmation line `CYAN <version number>`
   - Main header `<TYPE> <user link> [resourse]`
-  - Additional headers `KEY:VALUE`
+  - Other headers `KEY:VALUE`
 2. Body
   - Starting marker `BIN::`
   - Binary information
 
-Basic conversations between client and server can be basically broken down to client requests and consequent responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers. Any missing headers from the required list will result in an `ERR` response, all unmentioned headers will be ignored.
+All conversations between client and server can be basically broken down to client requests and consequent server responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers and may or may not have a body. Any missing headers from the required list will result in an `ERR` response, all unmentioned headers will be ignored.
 
 Requests and responses
 ----------------------
