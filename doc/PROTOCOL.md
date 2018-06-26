@@ -120,6 +120,7 @@ binary file starts here
   - `LENGTH`
 - Acceptable headers
   - `CODE`
+  - `USER-TOKEN`
 
 #### Example
 
@@ -157,7 +158,7 @@ Header specification
 
 #### `USER-TOKEN`
 
-A token string authorising the user.
+A token string authorising the user. In requests, this signifies a session token, however, in an `ACK` responce it stands for a one time token used to finish the login sequence.
 
 #### `TARGET`
 
