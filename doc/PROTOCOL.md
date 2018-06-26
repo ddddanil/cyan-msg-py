@@ -56,6 +56,7 @@ ACCEPT-TYPE:text
   - `CHECKSUM`
   - `TIME-SENT`
   - `LENGTH`
+  - `TARGET`
 - Acceptable headers
   - None
 
@@ -65,6 +66,7 @@ ACCEPT-TYPE:text
 CYAN 0.1
 POST u0001
 USER-TOKEN:requesters_token
+TARGET:u0002
 TYPE:img
 CHECKSUM:hash_of_binary
 TIME-SENT:6782357087
@@ -158,6 +160,10 @@ Header specification
 #### `USER-TOKEN`
 
 A token string authorising the user.
+
+#### `TARGET`
+
+A user token or a specific resourse.
 
 #### `ACCEPT-TYPE` and `TYPE`
 
