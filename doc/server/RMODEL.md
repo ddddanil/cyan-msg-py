@@ -14,11 +14,11 @@ Classes
 This class distributes all new connections among opened sessions and creates new ones. Sessions s[awned by this manager can be one of the following three types
 
 1. Named, or long-term
-    This session is working with authorised users and is named and accessed via their current user token.
+   This session is working with authorised users and is named and accessed via their current user token.
 2. Temporary
-    This session serves users that had been given a one time token. This type is closed right after its first response.
+   This session serves users that had been given a one time token. This type is closed right after its first response.
 3. Unnamed
-    This session serves a special user (u000000 for this particular server). It is destroyed in the same manner as a temporary session, but it is not acessed by a token name.
+   This session serves a special user (u000000 for this particular server). It is destroyed in the same manner as a temporary session, but it is not acessed by a token name.
 
 Once a new connection is established, the following procedure is performed
 

@@ -30,11 +30,11 @@ This module implements the CYAN-msg resource model including all additional reso
 In order to maximize efficiency, all resources are implemented in one of these ways
 
 1. Abstraction.
-    These resources do not contain any stored data, but rather get resolved on the fly by the module. These are `/login` and `/register`.
+   These resources do not contain any stored data, but rather get resolved on the fly by the module. These are `/login` and `/register`.
 2. Data
-    These resources only contain metadata, so they are stored in a database. These are `/users/`, `/groups/`, `/settings` and `/events`.
+   These resources only contain metadata, so they are stored in a database. These are `/users/`, `/groups/`, `/settings` and `/events`.
 3. Storage
-    These resources have some binary data that is stored as a file on a machine. This currently is only `/resources/`.
+   These resources have some binary data that is stored as a file on a machine. This currently is only `/resources/`.
 
 #### Session managing
 

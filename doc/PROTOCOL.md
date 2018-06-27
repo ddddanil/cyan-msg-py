@@ -45,7 +45,7 @@ USER-TOKEN:requesters_token
 ACCEPT-TYPE:text
 ```
 
-___________
+____________________
 
 This is a typical `/events` request.
 
@@ -90,18 +90,18 @@ binary file here
 ### `BIN` response
 
 - Requires resource
-  - TRUE
+   - TRUE
 - Has body
-  - TRUE
+   - TRUE
 - Required headers
-  - `TYPE`
-  - `CHECKSUM`
-  - `SENDER`
-  - `TIME-SENT`
-  - `LENGTH`
+   - `TYPE`
+   - `CHECKSUM`
+   - `SENDER`
+   - `TIME-SENT`
+   - `LENGTH`
 - Acceptable headers
-  - `READ-STATUS`
-  - `CODE`
+   - `READ-STATUS`
+   - `CODE`
 
 #### Example
 
@@ -121,17 +121,17 @@ binary file starts here
 ### `ACK` response
 
 - Requires resource
-  - TRUE
+   - TRUE
 - Has body
-  - FALSE
+   - FALSE
 - Required headers
-  - `TYPE`
-  - `CHECKSUM`
-  - `TIME-SENT`
-  - `LENGTH`
+   - `TYPE`
+   - `CHECKSUM`
+   - `TIME-SENT`
+   - `LENGTH`
 - Acceptable headers
-  - `CODE`
-  - `USER-TOKEN`
+   - `CODE`
+   - `USER-TOKEN`
 
 #### Example
 
@@ -144,7 +144,7 @@ LENGTH:543210
 TIME-SENT:880880654
 ```
 
-_________________
+____________________
 
 This is a responce to a successful `/login` request
 
@@ -161,13 +161,13 @@ USER-TOKEN:deadbeebcafe
 ### `ERR` response
 
 - Requires resource
-  - FALSE
+   - FALSE
 - Has body
-  - FALSE
+   - FALSE
 - Required headers
-  - `CODE`
+   - `CODE`
 - Acceptable headers
-  - `TEXT`
+   - `TEXT`
 
 #### Example
 
