@@ -50,4 +50,4 @@ For all different storage needs, this server needs a complex database system. So
 
 ### Module communication
 
-This server-side implementation uses an idea of microservices. Each module works asynchronously to one another
+This server-side implementation uses an idea of microservices. Each module works asynchronously to one another, communicating through system sockets.
