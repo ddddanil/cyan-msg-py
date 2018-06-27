@@ -24,6 +24,7 @@ BIN::
 ```
 
 Just after recieving this request, session manager spawns a unnamed session. As u000000 has permissions only to `POST` to `/login` and `/register`, any other request should be declined.
+
 Under the hood, this abstraction is interpreted by the Resource manager as a request to check given password against one stored in a database. Depending on whether they match or not, session returns an `ERR` or `ACK` response.
 
 ### First response
