@@ -30,6 +30,7 @@ Once a new connection is established, the following procedure is performed
 
 This class is working with requests and responses from Networker module. It manages permissions and session timeouts.
 Once it has been spawned, it fetches requests one at a time, firstly checking for permissions and then asking the Resource manager for a requested resource.
+Also, one session is not limited to serving one Networker node, but rather there is a list of nodes being serviced. Each of those nodes has successfully logged in as the same user, and was given the same user token. All requests from every node are put into a queue, so that one session would not get more that one request at a time.
 
 Each session has closing conditions. Each session checks them before fetching a request and after giving a response. If this condition is met, session executes finishing instructions and dies.
 
