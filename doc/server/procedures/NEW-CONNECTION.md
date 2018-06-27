@@ -14,7 +14,7 @@ Sequence
    2. Recieve data
    3. Parse data
    4. Form a request object
-   5. Throw that abjetc at session manager
+   5. Throw that object at session manager
 2. RModel
    1. Recieve an object
    2. Determine should this connection have a new session, or use an existing one. Determine type and name of that session
