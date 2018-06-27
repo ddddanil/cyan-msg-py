@@ -12,12 +12,15 @@ Basic information
 The protocol itself consists of a number of lines of ASCII characters, divided by newline characters. A packet has two parts
 
 1. Head
-  - Protocol confirmation line `CYAN <version number>`
-  - Main header `<TYPE> <user link> [resource]`
-  - Other headers `KEY:VALUE`
-2. Body
-  - Starting marker `BIN::`
-  - Binary information
+   - Protocol confirmation line `CYAN <version number>`
+   - Main header `<TYPE> <user link> [resource]`
+   - Other headers `KEY:VALUE`
+2. Ending. Either
+   - Standart marker `::`
+   - Binary marker `BIN::`
+3. Binary information (optional)
+
+In order to transport binary information safely, its length sould be present in headers (see details later). Recipient will wait until timeout for that amount of bytes to be recieved. Any excess will be interpreted as a new request.
 
 All conversations between client and server can be basically broken down to client requests and consequent server responses. Client can either use `GET` or `POST` request, to which there are `BIN`, `ACK` and `ERR` responses, all of which are discussed in detail later. Each type has a list of required and acceptable headers and may or may not have a body. Any missing headers from the required list will result in an `ERR` response, all unmentioned headers will be ignored.
 
@@ -27,14 +30,14 @@ Requests and responses
 ### `GET` request
 
 - Requires resource
-  - TRUE
+   - TRUE
 - Has body
-  - FALSE
+   - FALSE
 - Required headers
-  - `USER-TOKEN`
+   - `USER-TOKEN`
 - Acceptable headers
-  - `ACCEPT-TYPE`
-  - `LAST-UPDATE`
+   - `ACCEPT-TYPE`
+   - `LAST-UPDATE`
 
 #### Example
 
@@ -54,6 +57,7 @@ CYAN 0.1
 GET u0001 /events
 USER-TOKEN:deadbeefcafe
 LAST-UPDATE:880880456
+::
 ```
 
 ### `POST` request
@@ -142,6 +146,7 @@ TYPE:video
 CHECKSUM:hash_of_binary
 LENGTH:543210
 TIME-SENT:880880654
+::
 ```
 
 ____________________
@@ -156,6 +161,7 @@ CHECKSUM:1234567890abcdef
 LENGTH:254
 TIME-SENT:880880987
 USER-TOKEN:deadbeebcafe
+::
 ```
 
 ### `ERR` response
@@ -176,6 +182,7 @@ CYAN 0.1
 ERR u0001
 CODE:403
 TEXT:Forbidden
+::
 ```
 
 Header specification
