@@ -10,13 +10,13 @@ Sequence
 --------
 
 1. Networker
-   1. Designate a new socket
-   2. Recieve data
-   3. Parse data
-   4. Form a request object
-   5. Throw that object at session manager
+   1. Server accepts new connection and creates new ProtocolSolver using this connection.
+   2. ProtocolSolver collects data from the client and creates a raw request
+   3. ProtocolSolver parses raw request data and forms a valid Request object
+   4. Connect to Session
+      1. ProtocolSolver connects to SessionManager and waiting for accept
+      2. After connection  ProtocolSolver sends 2 fields: user id (`user:u00001`) and token (`token:user_token`) 
 2. RModel
-   1. Recieve an object
-   2. Determine should this connection have a new session, or use an existing one. Determine type and name of that session
-   3. Spawn and/or select a proper session
-   4. Add the requested Networker node to the list of served nodes in that session
+   1. SessionManager accepts new connection
+   2. from this connection reads 2 field (user and token)
+   3. from these fields, the server understands which session to create
