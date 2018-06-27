@@ -1,6 +1,10 @@
 CYAN-msg Python server
 ======================
 
+[Networker]: ./NETWORKER.md
+[RModel]: ./RMODEL.md
+[DataManager]: DATAMANAGER.md
+
 Overview
 --------
 
@@ -11,13 +15,13 @@ Inner workings
 
 In order to comply with CYAN-msg specifications, this package includes three modules, which when combined produce a fully working server. These modules are Networker, RModel and DataManager.
 
-### Networker
+### [Networker]
 
 This module is made to ensure connectivity with all clients. The main goal of this module is to serve CYAN-msg protocol. It checks the integrity of incoming packages and immediately discards malformed ones. Moreover, it handles the proper formation of server responses.
 
 In order to communicate with the outer world, it uses socket technology.
 
-### RModel
+### [RModel]
 
 This module implements the CYAN-msg resource model including all additional resources. It is also in charge of managing sessions and permissions.
 
@@ -40,6 +44,6 @@ In this implementation, all packets exchanged within one system socket represent
 
 As every non-personalized resource has a sender and a reciever metadata, in order to grant access permissions server should only check whether the requesting user is either of them. Please note, that if reciever happens to be a group, every member of that group counts as a reciever.
 
-### DataManager
+### [DataManager]
 
 For all different storage needs, this server needs a complex database system. So in order for RModel to seamlessly fetch informantion, it needs a database manager. Such a manager would also be in control of managing files in the actual storage.
