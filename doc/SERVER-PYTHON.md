@@ -17,9 +17,9 @@ In order to comply with CYAN-msg specifications, this package includes three mod
 
 ### [Networker]
 
-This module is made to ensure connectivity with all clients. The main goal of this module is to serve CYAN-msg protocol. It checks the integrity of incoming packages and immediately discards malformed ones. Moreover, it handles the proper formation of server responses.
+This module is made to ensure connectivity with all clients. The main goal of this module is to serve CYAN-msg protocol. It checks the integrity of incoming packages and immediately discards malformed ones. Moreover, it handles proper formation of server responses.
 
-In order to communicate with the outer world, it uses socket technology.
+In order to communicate with the outer world, it uses stream socket technology.
 
 ### [RModel]
 
@@ -47,3 +47,7 @@ As every non-personalized resource has a sender and a reciever metadata, in orde
 ### [DataManager]
 
 For all different storage needs, this server needs a complex database system. So in order for RModel to seamlessly fetch informantion, it needs a database manager. Such a manager would also be in control of managing files in the actual storage.
+
+### Module communication
+
+This server-side implementation uses an idea of microservices. Each module works asynchronously to one another
