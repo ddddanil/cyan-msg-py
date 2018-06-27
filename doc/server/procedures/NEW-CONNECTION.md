@@ -18,5 +18,5 @@ Sequence
       2. After connection  ProtocolSolver sends 2 fields: user id (`user:u00001`) and token (`token:user_token`) 
 2. RModel
    1. SessionManager accepts new connection
-   2. from this connection reads 2 field (user and token)
-   3. from these fields, the server understands which session to create
+   2. It reads 2 fields from this connection (user and token)
+   3. Based in the information from these fields, session manager deduces which session type to create
