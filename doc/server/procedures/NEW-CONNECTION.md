@@ -15,7 +15,7 @@ Sequence
    3. ProtocolSolver parses raw request data and forms a valid Request object
    4. Connect to Session
       1. ProtocolSolver connects to SessionManager and waiting for accept
-      2. After connection  ProtocolSolver sends 2 fields: user id (`user:u00001`) and token (`token:user_token`) 
+      2. After connection  ProtocolSolver sends 2 fields: user id (`user:u00001`) and token (`USER-TOKEN:user_token`) 
 2. RModel
    1. SessionManager accepts new connection
    2. It reads 2 fields from this connection (user and token)
