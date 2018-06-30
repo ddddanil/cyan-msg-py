@@ -3,18 +3,20 @@ import functools
 import pickle
 
 
-class CyanProtocol(asyncio.Protocol):
+class CyanProtoSolver(asyncio.Protocol):
 
     def __init__(self):
         super().__init__()
         self.transport = None
         self.peername = None
 
-        self.session_msg = asyncio.Future()
-        self.session_msg.add_done_callback(functools.partial(self.session_msg_cb))
-        self.session = SessionProtocol(self)
-        coro = loop.create_connection(lambda: self.session, '0.0.0.0', 12346)
-        asyncio.ensure_future(coro)
+        # Create connection to the Session
+        # self.session_msg = asyncio.Future()
+        # self.session_msg.add_done_callback(functools.partial(self.session_msg_cb))
+        # self.session = SessionConnection(self)
+        # coro = loop.create_connection(lambda: self.session, '0.0.0.0', 12346)
+        # asyncio.ensure_future(coro)
+
         self.loop = asyncio.get_event_loop()
 
     def connection_made(self, transport):
@@ -23,12 +25,13 @@ class CyanProtocol(asyncio.Protocol):
         print(f'new connection from {self.peername}')
 
     def data_received(self, data):
-        print(f'received proto: {data}')
-        if not self.session:
-            self.session = SessionProtocol(self)
-            coro = loop.create_connection(lambda: self.session, '0.0.0.0', 12346)
-            asyncio.ensure_future(coro)
-        self.session.transport.write(data)
+        # print(f'received proto: {data}')
+        print('new pack')
+        #if not self.session:
+        #    self.session = SessionConnection(self)
+        #    coro = loop.create_connection(lambda: self.session, '0.0.0.0', 12346)
+        #    asyncio.ensure_future(coro)
+        # self.session.transport.write(data)
 
     def connection_lost(self, exc):
         if exc:
@@ -42,9 +45,9 @@ class CyanProtocol(asyncio.Protocol):
         self.session_msg.add_done_callback(functools.partial(self.session_msg_cb))
 
 
-class SessionProtocol(asyncio.Protocol):
+class SessionConnection(asyncio.Protocol):
 
-    def __init__(self, cyan_proto: CyanProtocol):
+    def __init__(self, cyan_proto: CyanProtoSolver):
         super().__init__()
         self.cyan_proto = cyan_proto
         self.transport = None
@@ -65,7 +68,7 @@ class SessionProtocol(asyncio.Protocol):
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
-    coro = loop.create_server(CyanProtocol, '0.0.0.0', 12345)
+    coro = loop.create_server(CyanProtoSolver, '0.0.0.0', 12345)
     server = loop.run_until_complete(coro)
     try:
         loop.run_forever()
