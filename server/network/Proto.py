@@ -1,4 +1,5 @@
 import asyncio
+import uvloop
 import socket
 from .Request import Request
 from pprint import pprint
@@ -41,6 +42,7 @@ class CyanSolver:
         self.requests_queue = asyncio.Queue()
         self.ack_queue = asyncio.Queue()
         self.session = None
+        self.session_addr = ('127.0.0.1', 123456)
         self.loop = asyncio.get_event_loop()
         self.loop.create_task(self.send_to_session())
         self.data = b''
@@ -55,7 +57,6 @@ class CyanSolver:
             if not data:
                 self.sock.close()
                 self.alive = False
-                del self
                 return
 
             self.data = self.request.add(data)
@@ -65,14 +66,20 @@ class CyanSolver:
 
     async def send_to_session(self):
         while True:
+            if not self.session:
+                self.session = socket.socket()
+                self.session.setblocking(False)
+                await self.loop.sock_connect(self.session_addr)
             request = await self.requests_queue.get()
             print(f'new request from {self.addr}')
             pprint(request.headers)
 
 
 if __name__ == '__main__':
-    server = ConnectionServer()
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
+
+    server = ConnectionServer()
     loop.create_task(server.serv())
     loop.run_forever()
     loop.close()

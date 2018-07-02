@@ -39,7 +39,8 @@ class Request:
     def add(self, data: bytes):
         if not self.headers:
             if b'::' in data:
-                headers_part, self.file_part = data.split(b'::', maxsplit=1)
+                sep = b'::\n' if b'::\n' in data else b'::'
+                headers_part, self.file_part = data.split(sep, maxsplit=1)
                 data = b''
                 self.headers_part += headers_part
                 self.parse()
@@ -52,11 +53,12 @@ class Request:
                 return self.file_part + data
             else:
                 try:
-                    needed_size = int(self.headers['LENGTH']) - len(self.headers['BIN']) + 1
+                    needed_size = int(self.headers['LENGTH']) - len(self.headers['BIN'])
                 except ValueError:
                     raise ParseError('INVALID POST REQUEST LENGTH HEADER')
                 else:
                     self.headers['BIN'] += self.file_part[:needed_size]
+                    print(int(self.headers['LENGTH']), len(self.headers['BIN']), self.headers['BIN'])
                     self.done = (int(self.headers['LENGTH']) == len(self.headers['BIN']))
                     return self.file_part[needed_size:]
         return b''
@@ -146,17 +148,17 @@ class Request:
 
 
 if __name__ == '__main__':
-    x = b"""CYAN 0.1
-POST u0001
-USER-TOKEN:aaaaaa
-TARGET:u0002
-TYPE:img
-CHECKSUM:saaaa
-TIME-SENT:6782357087
-LENGTH:14
-BIN::
-binary file here
-"""
+    data = \
+        b"CYAN 0.1\n" + \
+        b"POST u0001\n" + \
+        b"USER-TOKEN:000000\n" + \
+        b"TARGET:u0001\n" + \
+        b"TYPE:img\n" + \
+        b"CHECKSUM:000000\n" + \
+        b"TIME-SENT:0001\n" + \
+        b"LENGTH:14\n" + \
+        b"BIN::\n" + \
+        b"binary file here"
     r = Request()
-    print(r.add(x))
+    print(r.add(data))
     pprint(r.headers)

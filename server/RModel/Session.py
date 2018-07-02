@@ -1,36 +1,32 @@
 import asyncio
+import socket
+import uvloop
 
 
-class Session(asyncio.Protocol):
+class SessionManager:
 
-    def __init__(self):
-        super().__init__()
-        self.transport = None
-        self.peername = None
+    def __init__(self, host='0.0.0.0', port=12346):
+        self.host = host
+        self.port = port
+        self.connections = []
+        # Create tcp socket for accept
+        # typical socket set up commands
+        print((host, port))
+        self.master_socket = socket.socket()
+        self.master_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.master_socket.setblocking(False)
+        self.master_socket.bind((host, port))
+        self.master_socket.listen(socket.SOMAXCONN)
+        self.loop = asyncio.get_event_loop()
+        print(f'Start server on {host}:{port}')
 
-    def connection_made(self, transport: asyncio.Transport):
-        self.transport = transport
-        self.peername = transport.get_extra_info('peername')
-        print(self.peername)
-
-    def data_received(self, data):
-        print(f'received session: {data}')
-        self.transport.write(data)
-
-    def connection_lost(self, exc):
-        if exc:
-            print(exc)
-        print('close connection')
-
+    async def serv(self):
+        while True:
+            sock, addr = await self.loop.sock_accept(self.master_socket)
+            print(f'new connection to SessionManager from {addr}')
 
 if __name__ == '__main__':
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
-    coro = loop.create_server(Session, '0.0.0.0', 12346)
-    server = loop.run_until_complete(coro)
-    lp = asyncio.get_event_loop()
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
-    server.close()
-    loop.close()
+
+    server = SessionManager()

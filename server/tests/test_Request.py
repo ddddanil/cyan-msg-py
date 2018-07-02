@@ -1,4 +1,4 @@
-from .Request import Request
+from server.network.Request import Request
 import pytest
 
 
@@ -13,7 +13,7 @@ class TestRequest:
             b"ACCEPT-TYPE:text\n" + \
             b"::"
         assert req.add(data) == b''
-        assert req.done == True
+        assert req.done is True
         assert req.headers == {
             'CYAN': '0.1',
             'REQ-TYPE': 'GET',
@@ -37,15 +37,16 @@ class TestRequest:
             b"BIN::\n" + \
             b"binary file here"
         assert req.add(data) == b're'
-        assert req.done == True
+        assert req.done is True
         assert req.headers == {
             'CYAN': '0.1',
-            'POST': 'u0001',
+            'REQ-TYPE': 'POST',
+            'USER': 'u0001',
             'USER-TOKEN': '000000',
             'TARGET': 'u0001',
             'TYPE': 'img',
             'CHECKSUM': '000000',
             'TIME-SENT': '0001',
             'LENGTH': '14',
-            'BIN': 'binary file he'
+            'BIN': b'binary file he'
         }
