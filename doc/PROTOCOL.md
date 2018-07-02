@@ -46,6 +46,7 @@ CYAN 0.1
 GET u0001 /resources/_unique_file_id_
 USER-TOKEN:requesters_token
 ACCEPT-TYPE:text
+::
 ```
 
 ____________________
