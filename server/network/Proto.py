@@ -1,7 +1,8 @@
 import asyncio
 import uvloop
 import socket
-from .Request import Request
+from Request import Request
+from pickle import dumps
 from pprint import pprint
 
 
@@ -44,17 +45,17 @@ class CyanSolver:
         self.session = None
         self.session_addr = ('127.0.0.1', 123456)
         self.loop = asyncio.get_event_loop()
-        self.loop.create_task(self.send_to_session())
         self.data = b''
 
     async def serv(self):
+        self.loop.create_task(self.send_to_session())
         while True:
-            print(self.data)
             data = self.data + await self.loop.sock_recv(self.sock, 1024)
 
             # I'm not sure about this place
             # Connection was close
             if not data:
+                print(f'close connection with {self.addr}')
                 self.sock.close()
                 self.alive = False
                 return
@@ -65,13 +66,21 @@ class CyanSolver:
                 self.request = Request()
 
     async def send_to_session(self):
+        print('start send_to_session')
         while True:
+            request = await self.requests_queue.get()
+            print(f'new request from {self.addr}')
             if not self.session:
                 self.session = socket.socket()
                 self.session.setblocking(False)
-                await self.loop.sock_connect(self.session_addr)
-            request = await self.requests_queue.get()
-            print(f'new request from {self.addr}')
+                await self.loop.sock_connect(self.session, self.session_addr)
+                await self.loop.sock_sendall(
+                    self.session,
+                    dumps({
+                        'USER': request.headers['USER'],
+                        'USER-TOKEN': request.headers['USER-TOKEN']
+                    })
+                )
             pprint(request.headers)
 
 
@@ -81,5 +90,8 @@ if __name__ == '__main__':
 
     server = ConnectionServer()
     loop.create_task(server.serv())
-    loop.run_forever()
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        loop.stop()
     loop.close()
