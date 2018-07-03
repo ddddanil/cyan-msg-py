@@ -3,6 +3,7 @@ import socket
 import uvloop
 from pickle import loads
 from pprint import pprint
+import Session
 
 
 class SessionManager:
@@ -10,6 +11,9 @@ class SessionManager:
     def __init__(self, host='0.0.0.0', port=12346):
         self.host = host
         self.port = port
+
+        self.session_list = {}
+
         # Create tcp socket for accept
         # typical socket set up commands
         print((host, port))
@@ -34,6 +38,14 @@ class SessionManager:
             data = await self.loop.sock_recv(sock, 1024)
             param = loads(data)
             pprint(param)
+            if param['USER'] is not "u000000":
+                current_session = self.session_list[param['USER-TOKEN']]
+                if not current_session:
+                    self.session_list[param['USER-TOKEN']] = Session.Session(sock, addr, Session.NAMED)
+                else:
+                    await current_session.recieve_connection(sock, addr)
+            else:
+                raise NotImplementedError
 
 
 if __name__ == '__main__':

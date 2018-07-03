@@ -1,54 +1,40 @@
 import asyncio
 import os
 import socket
+import uvloop
 from pickle import loads
 from functools import wraps
 
 UNNAMED = 0
 NAMED = 1
 
-class Session:
-
-    def __init__(self, path, death_type=UNNAMED, *args, **kwargs): # Is better to use system sockets?
-        self.path = path
-        self.type = death_type
-
-        if not self.path:
-            raise ValueError("Specify path")
-        
-        self.master_socket = socket.socket(socket.AF_UNIX)
-        self.master_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.master_socket.setblocking(False)
-        try:
-            os.remove(self.path)
-        except OSError:
-            pass
-        self.master_socket.bind(path)
-        self.master_socket.listen(socket.SOMAXCONN)
-
-        self.response_counter = 0
-        self.alive = True
-
-        self.connection_list = []
-        self.request_queue = asyncio.Queue()
-        self.loop = asyncio.get_event_loop()
-    
-    def run_while_alive(self, func):
+def run_while_alive(func):
         @wraps(func)
-        async def new_function(*args, **kwargs):
+        async def new_function(self, *args, **kwargs):
             while True:
                 self.check_death()
                 if not self.alive:
                     return
-                self.loop.call_soon(func(*args, **kwargs))
+                self.loop.call_soon(func(self, *args, **kwargs))
         return new_function
 
-    @run_while_alive
-    async def recieve_connection(self):
-        sock, addr = await self.loop.sock_accept(self.master_socket)
-        sock.setblocking(False)
+class Session:
+
+    def __init__(self, sock, addr, death_type=UNNAMED, *args, **kwargs):
+        self.type = death_type
+
+        self.response_counter = 0
+        self.alive = True
+
+        self.connection_list = [(sock, addr)]
+        self.request_queue = asyncio.Queue()
+        self.loop = asyncio.get_event_loop()
+
+        asyncio.ensure_future(self.handle_connection(sock, addr))
+    
+    async def recieve_connection(self, sock, addr):
         self.connection_list.append((sock, addr))
-        asyncio.ensure_future(self.handle_(sock, addr))
+        asyncio.ensure_future(self.handle_connection(sock, addr))
     
     @run_while_alive
     async def handle_connection(self, sock, addr):
@@ -63,11 +49,11 @@ class Session:
         self.respond(request) # TODO respond
         self.response_counter += 1
 
-    async def check_death(self):
+    def check_death(self):
         if self.type is UNNAMED:
             if self.response_counter != 0:
                 return self.die()
-        elif self.type in NAMED:
+        elif self.type is NAMED:
             pass # TODO timeouts
 
     def die(self):
@@ -75,17 +61,27 @@ class Session:
             while True:
                 request = self.request_queue.get_nowait()
                 self.respond(request, 'ERR', 304, "Repeat request due to timeout")
-        except QueueEmpty:
+        except asyncio.QueueEmpty:
             pass
         
         for sock, addr in self.connection_list:
             sock.close()
         
-        self.master_socket.close()
-        try:
-            os.remove(self.path)
-        except OSError:
-            pass
-        
         self.alive = False
         return
+
+    def respond(self, request, type='ERR', code=500, msg=''):
+        pass
+        #raise NotImplementedError
+
+if __name__ == "__main__":
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    loop = asyncio.get_event_loop()
+
+    # server = Session("0.0.0.0", 12347, NAMED)
+    # asyncio.ensure_future(server.recieve_connection())
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:
+        loop.stop()
+    loop.close()
