@@ -16,10 +16,10 @@ REQUIRED_POST_HEADERS = ('CYAN', 'REQ-TYPE', 'USER', 'USER-TOKEN', 'TYPE', 'CHEC
 class ParseError(Exception):
     def __init__(self, description='', code=400):
         self.code = code
-        self.description = description
+        self.desc = description
 
     def __str__(self):
-        return f'CODE: {self.code}\nDESC: {self.description}'
+        return f'CODE: {self.code}\nDESC: {self.desc}'
 
 
 class Request:
@@ -67,6 +67,8 @@ class Request:
         lines = self.headers_part.split(b'\n')
         if not lines[-1]:
             lines.pop()
+        if not lines:
+            raise ParseError('BAD FIRST LINE')
         pprint(lines)
         # check characters
         for num, line in enumerate(lines):
