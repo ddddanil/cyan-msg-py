@@ -32,7 +32,6 @@ class Session:
 
         asyncio.ensure_future(self.handle_connection(sock, addr))
     
-    @run_while_alive
     async def recieve_connection(self, sock, addr):
         self.connection_list.append((sock, addr))
         asyncio.ensure_future(self.handle_connection(sock, addr))
@@ -73,6 +72,7 @@ class Session:
 
     def respond(self, request, type='ERR', code=500, msg=''):
         pass
+        #raise NotImplementedError
 
 if __name__ == "__main__":
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
