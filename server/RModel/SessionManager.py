@@ -37,7 +37,7 @@ class SessionManager:
         data = await self.loop.sock_recv(sock, 1024)
         param = loads(data)
         pprint(param)
-        if param['USER'] is not "u000000":
+        if param['USER'] is not 'u000000':
             try:
                 current_session = self.session_list[param['USER-TOKEN']]
             except KeyError:

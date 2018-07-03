@@ -5,8 +5,10 @@ import uvloop
 from pickle import loads
 from functools import wraps
 
+
 UNNAMED = 0
 NAMED = 1
+
 
 def run_while_alive(func):
         @wraps(func)
@@ -18,6 +20,7 @@ def run_while_alive(func):
                 self.loop.call_soon(func(self, *args, **kwargs))
         return new_function
 
+
 class Session:
 
     def __init__(self, sock, addr, death_type=UNNAMED, *args, **kwargs):
@@ -25,7 +28,6 @@ class Session:
 
         self.response_counter = 0
         self.alive = True
-
         self.connection_list = [(sock, addr)]
         self.request_queue = asyncio.Queue()
         self.loop = asyncio.get_event_loop()
@@ -35,17 +37,21 @@ class Session:
     async def recieve_connection(self, sock, addr):
         self.connection_list.append((sock, addr))
         asyncio.ensure_future(self.handle_connection(sock, addr))
-    
+
     @run_while_alive
     async def handle_connection(self, sock, addr):
-        request_p = await self.loop.sock_recv(sock, 1024)
-        request = loads(request_p)
-        self.request_queue.put(request)
+        raw_request = b''
+        size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+        while len(raw_request) < size:
+            needed_size = min(size - len(raw_request), 1024)
+            raw_request += await self.loop.sock_recv(sock, needed_size)
+
+        await self.request_queue.put(loads(raw_request))
 
     @run_while_alive
     async def process_requests(self):
         request = await self.request_queue.get()
-        #Process request
+        # Process request
         self.respond(request) # TODO respond
         self.response_counter += 1
 
@@ -72,7 +78,8 @@ class Session:
 
     def respond(self, request, type='ERR', code=500, msg=''):
         pass
-        #raise NotImplementedError
+        # raise NotImplementedError
+
 
 if __name__ == "__main__":
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
