@@ -67,13 +67,13 @@ class CyanSolver:
                 self.data = self.request.add(data)
             except ParseError as err:
                 print(err)
-                self.response_queue.put(ErrResponse(code=err.code, desc=err.desc))
+                await self.response_queue.put(ErrResponse(code=err.code, desc=err.desc))
                 print('err put')
                 self.request = Request()
                 
             if self.request.done:
                 print('request done')
-                self.requests_queue.put(self.request)
+                await self.requests_queue.put(self.request)
                 print('request put')
                 self.request = Request()
     
