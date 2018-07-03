@@ -1,7 +1,8 @@
 import asyncio
 import uvloop
 import socket
-from request import Request
+from request import Request, ParseError
+from response import ErrResponse
 from pickle import dumps
 from pprint import pprint
 
@@ -30,7 +31,7 @@ class ConnectionServer:
             solver = CyanSolver(sock, addr)
             self.connections.append(solver)
             print(f'new connection from {addr}')
-            asyncio.ensure_future(solver.serv())
+            asyncio.ensure_future(solver.recv_from_user())
 
 
 class CyanSolver:
@@ -41,15 +42,17 @@ class CyanSolver:
         self.alive = True
         self.request = Request()
         self.requests_queue = asyncio.Queue()
-        self.ack_queue = asyncio.Queue()
+        self.response_queue = asyncio.Queue()
         self.session = None
         self.session_addr = ('127.0.0.1', 12346)
         self.loop = asyncio.get_event_loop()
-        asyncio.ensure_future(self.send_to_session())
         self.data = b''
 
-    async def serv(self):
+    async def recv_from_user(self):
+        asyncio.ensure_future(self.send_to_session())
+        asyncio.ensure_future(self.send_to_user())
         while True:
+            self.response_queue.put(ErrResponse(code=400, desc=400))
             data = self.data + await self.loop.sock_recv(self.sock, 1024)
 
             # I'm not sure about this place
@@ -60,12 +63,26 @@ class CyanSolver:
                 self.alive = False
                 return
 
-            self.data = self.request.add(data)
+            try:
+                self.data = self.request.add(data)
+            except ParseError as err:
+                print(err)
+                self.response_queue.put(ErrResponse(code=err.code, desc=err.desc))
+                print('err put')
+                self.request = Request()
+                
             if self.request.done:
                 print('request done')
-                await self.requests_queue.put(self.request)
+                self.requests_queue.put(self.request)
                 print('request put')
                 self.request = Request()
+    
+    async def send_to_user(self):
+        while True:
+            print(f'wait for response from queue (len={self.response_queue.qsize()})....')
+            resp = await self.response_queue.get()
+            print('new response from queue')
+            await self.loop.sock_sendall(self.sock, bytes(resp))
 
     async def send_to_session(self):
         print('start send_to_session')
@@ -89,6 +106,13 @@ class CyanSolver:
             )
             pprint(request.headers)
 
+    async def recv_from_session(self):
+        while True:
+            data = await self.loop.sock_recv(self.session, 1024)
+            if not data:
+                self.session = None
+                return
+            
 
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
