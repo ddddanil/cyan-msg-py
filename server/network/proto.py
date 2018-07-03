@@ -1,7 +1,7 @@
 import asyncio
 import uvloop
 import socket
-from Request import Request
+from request import Request
 from pickle import dumps
 from pprint import pprint
 
@@ -30,7 +30,7 @@ class ConnectionServer:
             solver = CyanSolver(sock, addr)
             self.connections.append(solver)
             print(f'new connection from {addr}')
-            self.loop.create_task(solver.serv())
+            asyncio.ensure_future(solver.serv())
 
 
 class CyanSolver:
@@ -43,12 +43,12 @@ class CyanSolver:
         self.requests_queue = asyncio.Queue()
         self.ack_queue = asyncio.Queue()
         self.session = None
-        self.session_addr = ('127.0.0.1', 123456)
+        self.session_addr = ('127.0.0.1', 12346)
         self.loop = asyncio.get_event_loop()
+        asyncio.ensure_future(self.send_to_session())
         self.data = b''
 
     async def serv(self):
-        self.loop.create_task(self.send_to_session())
         while True:
             data = self.data + await self.loop.sock_recv(self.sock, 1024)
 
@@ -62,25 +62,31 @@ class CyanSolver:
 
             self.data = self.request.add(data)
             if self.request.done:
-                self.requests_queue.put(self.request)
+                print('request done')
+                await self.requests_queue.put(self.request)
+                print('request put')
                 self.request = Request()
 
     async def send_to_session(self):
         print('start send_to_session')
         while True:
+            print('waiting for request from  queue....')
             request = await self.requests_queue.get()
             print(f'new request from {self.addr}')
+            # Connect to Session Manager
             if not self.session:
                 self.session = socket.socket()
                 self.session.setblocking(False)
                 await self.loop.sock_connect(self.session, self.session_addr)
-                await self.loop.sock_sendall(
-                    self.session,
-                    dumps({
-                        'USER': request.headers['USER'],
-                        'USER-TOKEN': request.headers['USER-TOKEN']
-                    })
-                )
+            
+            # Send user and token to session
+            await self.loop.sock_sendall(
+                self.session,
+                dumps({
+                    'USER': request.headers['USER'],
+                    'USER-TOKEN': request.headers['USER-TOKEN']
+                })
+            )
             pprint(request.headers)
 
 
@@ -89,7 +95,7 @@ if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
     server = ConnectionServer()
-    loop.create_task(server.serv())
+    asyncio.ensure_future(server.serv())
     try:
         loop.run_forever()
     except KeyboardInterrupt:
