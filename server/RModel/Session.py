@@ -4,10 +4,8 @@ import socket
 from pickle import loads
 from functools import wraps
 
-
 UNNAMED = 0
 NAMED = 1
-
 
 class Session:
 
@@ -61,7 +59,7 @@ class Session:
     @run_while_alive
     async def process_requests(self):
         request = await self.request_queue.get()
-        # Process request
+        #Process request
         self.respond(request) # TODO respond
         self.response_counter += 1
 
