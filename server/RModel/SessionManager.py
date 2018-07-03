@@ -34,18 +34,18 @@ class SessionManager:
             print(f'new connection to SessionManager from {addr}')
 
     async def handle_solver(self, sock, addr):
-        while True:
-            data = await self.loop.sock_recv(sock, 1024)
-            param = loads(data)
-            pprint(param)
-            if param['USER'] is not "u000000":
+        data = await self.loop.sock_recv(sock, 1024)
+        param = loads(data)
+        pprint(param)
+        if param['USER'] is not "u000000":
+            try:
                 current_session = self.session_list[param['USER-TOKEN']]
-                if not current_session:
-                    self.session_list[param['USER-TOKEN']] = Session.Session(sock, addr, Session.NAMED)
-                else:
-                    await current_session.recieve_connection(sock, addr)
-            else:
-                raise NotImplementedError
+            except KeyError:
+                current_session = self.session_list[param['USER-TOKEN']] = Session.Session(sock, addr, Session.NAMED)
+            finally:
+                await current_session.recieve_connection(sock, addr)
+        else:
+            raise NotImplementedError
 
 
 if __name__ == '__main__':
