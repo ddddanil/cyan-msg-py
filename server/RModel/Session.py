@@ -12,19 +12,18 @@ NAMED = 1
 TIMEOUT_SECONDS = 86400
 logger = None
 
+
 def run_while_alive(func):
-        @wraps(func)
-        async def new_function(self, *args, **kwargs):
-            async with timeout(TIMEOUT_SECONDS):
-                while True:
-                    await self.check_death()
-                    if not self.alive:
-                        return
-                    try:
-                        self.loop.call_soon(func(self, *args, **kwargs))
-                    except KeyboardInterrupt:
-                        self.alive = False
-        return new_function
+    @wraps(func)
+    async def new_function(self, *args, **kwargs):
+        async with timeout(TIMEOUT_SECONDS):
+            while True:
+                await self.check_death()
+                if not self.alive:
+                    return
+                self.loop.call_soon(func(self, *args, **kwargs))
+
+    return new_function
 
 
 class Session:
@@ -41,7 +40,7 @@ class Session:
         logger.info(f'New session to {addr}, type {death_type}')
 
         asyncio.ensure_future(self.handle_connection(sock, addr))
-    
+
     async def recieve_connection(self, sock, addr):
         self.connection_list.append((sock, addr))
 
@@ -49,56 +48,62 @@ class Session:
 
         asyncio.ensure_future(self.handle_connection(sock, addr))
 
-    @run_while_alive
     async def handle_connection(self, sock, addr):
-        raw_request = b''
-        # get size of new request
-        size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
-        # get this request
-        while len(raw_request) < size:
-            needed_size = min(size - len(raw_request), 1024)
-            raw_request += await self.loop.sock_recv(sock, needed_size)
-        request = loads(raw_request)
-        request['ORIGIN'] = (sock, addr)
+        while True:
+            await self.check_death()
+            if not self.alive:
+                return
+            raw_request = b''
+            # get size of new request
+            size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+            # get this request
+            while len(raw_request) < size:
+                needed_size = min(size - len(raw_request), 1024)
+                raw_request += await self.loop.sock_recv(sock, needed_size)
+            request = loads(raw_request)
+            request['ORIGIN'] = (sock, addr)
 
-        logger.info(f"New request from {addr}")
-        logger.debug(f"{request}")
-        
-        await self.request_queue.put(request)
+            logger.info(f"New request from {addr}")
+            logger.debug(f"{request}")
 
-    @run_while_alive
+            await self.request_queue.put(request)
+
     async def process_requests(self):
-        request = await self.request_queue.get()
-        # TODO Process request
-        response = None
-        if request['REQ-TYPE'] is 'POST':
-            response = {
-                'RESP-TYPE': 'ACK',
-                'USER': request['USER'],
-                'RESOURCE': request['RESOURCE'],
-                'TYPE': request['TYPE'],
-                'CHECKSUM': request['CHECKSUM'],
-                'LENGTH': request['LENGTH'],
-                'CODE': 200
-            }
-        elif request['REQ-TYPE'] is 'GET':
-            response = {
-                'RESP-TYPE': 'BIN',
-                'USER': request['USER'],
-                'RESOURCE': request['RESOURCE'],
-                'TYPE': request['TYPE'],
-                'CHECKSUM': 'IloveCats',
-                'LENGTH': 19,
-                'CODE': 200,
-                'SENDER': 'u000000',
-                'TIME-SENT': 88008800,
-                'BIN': b'You did a great job'
-            }
-        if not response:
-            raise ValueError
-        logger.debug(f"Processed\n{request}\nto\n{response}")
-        await self.respond(request['ORIGIN'], response)
-        self.response_counter += 1
+        while True:
+            await self.check_death()
+            if not self.alive:
+                return
+            request = await self.request_queue.get()
+            # TODO Process request
+            response = None
+            if request['REQ-TYPE'] is 'POST':
+                response = {
+                    'RESP-TYPE': 'ACK',
+                    'USER': request['USER'],
+                    'RESOURCE': request['RESOURCE'],
+                    'TYPE': request['TYPE'],
+                    'CHECKSUM': request['CHECKSUM'],
+                    'LENGTH': request['LENGTH'],
+                    'CODE': 200
+                }
+            elif request['REQ-TYPE'] is 'GET':
+                response = {
+                    'RESP-TYPE': 'BIN',
+                    'USER': request['USER'],
+                    'RESOURCE': request['RESOURCE'],
+                    'TYPE': request['TYPE'],
+                    'CHECKSUM': 'IloveCats',
+                    'LENGTH': 19,
+                    'CODE': 200,
+                    'SENDER': 'u000000',
+                    'TIME-SENT': 88008800,
+                    'BIN': b'You did a great job'
+                }
+            if not response:
+                raise ValueError
+            logger.debug(f"Processed\n{request}\nto\n{response}")
+            await self.respond(request['ORIGIN'], response)
+            self.response_counter += 1
 
     async def check_death(self):
         logger.debug("Check death")
@@ -107,20 +112,21 @@ class Session:
                 await self.die()
                 return
         elif self.type is NAMED:
-            pass # TODO timeouts
+            pass  # TODO timeouts
 
     async def die(self):
         logger.info("This session is going to die")
         try:
             while True:
                 request = self.request_queue.get_nowait()
-                await self.respond(request['ORIGIN'], {'RESP-TYPE': 'ERR', 'CODE': 304, 'TEXT': "Repeat request due to timeout"})
+                await self.respond(request['ORIGIN'],
+                                   {'RESP-TYPE': 'ERR', 'CODE': 304, 'TEXT': "Repeat request due to timeout"})
         except asyncio.QueueEmpty:
             pass
-        
+
         for sock, addr in self.connection_list:
             sock.close()
-        
+
         self.alive = False
         return
 
@@ -129,7 +135,7 @@ class Session:
             raise ValueError
 
         logger.info(f"Pushing response")
-        logger.debug(f"Response is {headers}")
+        logger.debug(f"Response is {response}")
 
         header_bytes = dumps(headers)
         header_length = len(header_bytes)
