@@ -135,7 +135,7 @@ class Session:
             raise ValueError
 
         logger.info(f"Pushing response")
-        logger.debug(f"Response is {response}")
+        logger.debug(f"Response is {headers}")
 
         header_bytes = dumps(headers)
         header_length = len(header_bytes)
