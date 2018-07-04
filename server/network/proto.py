@@ -1,9 +1,10 @@
 import asyncio
+from async_timeout import timeout
 import uvloop
 import socket
 from request import Request, ParseError
-from response import ErrResponse
-from pickle import dumps
+from response import *
+from pickle import dumps, loads
 from pprint import pprint
 
 
@@ -52,8 +53,13 @@ class CyanSolver:
         asyncio.ensure_future(self.send_to_session())
         asyncio.ensure_future(self.send_to_user())
         while True:
-            self.response_queue.put(ErrResponse(code=400, desc=400))
-            data = self.data + await self.loop.sock_recv(self.sock, 1024)
+            data = b''
+            try:
+                # 5 minutes for send data
+                with timeout(300):
+                    data = self.data + await self.loop.sock_recv(self.sock, 1024)
+            except asyncio.TimeoutError:
+                self.request = Request()
 
             # I'm not sure about this place
             # Connection was close
@@ -96,22 +102,35 @@ class CyanSolver:
                 self.session.setblocking(False)
                 await self.loop.sock_connect(self.session, self.session_addr)
             
-            # Send user and token to session
-            await self.loop.sock_sendall(
-                self.session,
-                dumps({
-                    'USER': request.headers['USER'],
-                    'USER-TOKEN': request.headers['USER-TOKEN']
-                })
-            )
+                # Send user and token to session
+                await self.loop.sock_sendall(
+                    self.session,
+                    dumps({
+                        'USER': request.headers['USER'],
+                        'USER-TOKEN': request.headers['USER-TOKEN']
+                    })
+                )
             pprint(request.headers)
 
     async def recv_from_session(self):
         while True:
-            data = await self.loop.sock_recv(self.session, 1024)
-            if not data:
-                self.session = None
-                return
+            raw_response = b''
+            # get size of new request
+            size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+            # get this request
+            while len(raw_response) < size:
+                needed_size = min(size - len(raw_response), 1024)
+                raw_response += await self.loop.sock_recv(sock, needed_size)
+            headers = loads(raw_response)
+            if headers['RESP_TYPE'] == 'ERR':
+                response = ErrResponse(headers)
+            elif headers['RESP_TYPE'] == 'BIN':
+                response = BinResponse(headers)
+            elif headers['RESP_TYPE'] == 'ACK':
+                response = AckResponse(headers)
+            else:
+                raise ValueError
+            await self.loop.sock_sendall(self.sock, bytes(response))
             
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import socket
 import uvloop
 from pickle import loads
 from pprint import pprint
-import Session
+from .Session import Session
 
 
 class SessionManager:
@@ -13,7 +13,7 @@ class SessionManager:
         self.port = port
 
         self.session_list = {}
-
+        self.tokens = {}
         # Create tcp socket for accept
         # typical socket set up commands
         print((host, port))
