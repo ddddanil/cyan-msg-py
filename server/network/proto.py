@@ -110,6 +110,7 @@ class CyanSolver:
                         'USER-TOKEN': request.headers['USER-TOKEN']
                     })
                 )
+            await self.loop.sock_sendall(self.session, bytes(request))
             pprint(request.headers)
 
     async def recv_from_session(self):
