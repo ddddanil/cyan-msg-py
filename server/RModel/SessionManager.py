@@ -3,6 +3,7 @@ import socket
 import uvloop
 from pickle import loads
 from pprint import pprint
+import logging, logging.handlers
 import Session
 
 
@@ -16,41 +17,60 @@ class SessionManager:
         self.tokens = {}
         # Create tcp socket for accept
         # typical socket set up commands
-        print((host, port))
+        logger.debug((host, port))
         self.master_socket = socket.socket()
         self.master_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.master_socket.setblocking(False)
         self.master_socket.bind((host, port))
         self.master_socket.listen(socket.SOMAXCONN)
         self.loop = asyncio.get_event_loop()
-        print(f'Start server on {host}:{port}')
+        logger.info(f'Start server on {host}:{port}')
 
     async def serv(self):
         while True:
-            print('serving....')
+            logger.debug('serving....')
             sock, addr = await self.loop.sock_accept(self.master_socket)
             sock.setblocking(False)
             asyncio.ensure_future(self.handle_solver(sock, addr))
-            print(f'new connection to SessionManager from {addr}')
+            logger.info(f'new connection to SessionManager from {addr}')
 
     async def handle_solver(self, sock, addr):
         data = await self.loop.sock_recv(sock, 1024)
         param = loads(data)
-        pprint(param)
+        logger.debug(param)
         if param['USER'] is not 'u000000':
             try:
                 current_session = self.session_list[param['USER-TOKEN']]
             except KeyError:
                 current_session = self.session_list[param['USER-TOKEN']] = Session.Session(sock, addr, Session.NAMED)
+                logger.info(f"New session on token {param['USER-TOKEN']}")
             finally:
                 await current_session.recieve_connection(sock, addr)
         else:
             raise NotImplementedError
 
 
+def setup_logger(): # TODO external init through file
+    global logger
+    
+    simple_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
+    debuglog = logging.StreamHandler()
+    debuglog.setLevel(logging.DEBUG)
+    debuglog.setFormatter(simple_formatter)
+
+    master_logger = logging.getLogger('CYAN-msg')
+    master_logger.setLevel(logging.DEBUG)
+    
+    master_logger.addHandler(debuglog)
+
+    logger = logging.getLogger('CYAN-msg.SessionManager')
+    Session.logger = logging.getLogger('CYAN-msg.Session')
+
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
+
+    setup_logger()
 
     server = SessionManager()
     asyncio.ensure_future(server.serv())

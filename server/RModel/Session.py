@@ -10,6 +10,7 @@ UNNAMED = 0
 NAMED = 1
 
 TIMEOUT_SECONDS = 86400
+logger = None
 
 def run_while_alive(func):
         @wraps(func)
@@ -34,10 +35,15 @@ class Session:
         self.request_queue = asyncio.Queue()
         self.loop = asyncio.get_event_loop()
 
+        logger.info(f'New session to {addr}, type {death_type}')
+
         asyncio.ensure_future(self.handle_connection(sock, addr))
     
     async def recieve_connection(self, sock, addr):
         self.connection_list.append((sock, addr))
+
+        logger.info(f"New connection to session from {addr}")
+
         asyncio.ensure_future(self.handle_connection(sock, addr))
 
     @run_while_alive
@@ -51,6 +57,10 @@ class Session:
             raw_request += await self.loop.sock_recv(sock, needed_size)
         request = loads(raw_request)
         request['ORIGIN'] = (sock, addr)
+
+        logger.info(f"New request from {addr}")
+        logger.debug(f"{request}")
+        
         await self.request_queue.put(request)
 
     @run_while_alive
@@ -83,10 +93,12 @@ class Session:
             }
         if not response:
             raise ValueError
+        logger.debug(f"Processed\n{request}\nto\n{response}")
         await self.respond(request['ORIGIN'], response)
         self.response_counter += 1
 
     async def check_death(self):
+        logger.debug("Check death")
         if self.type is UNNAMED:
             if self.response_counter != 0:
                 await self.die()
@@ -95,6 +107,7 @@ class Session:
             pass # TODO timeouts
 
     async def die(self):
+        logger.info("This session is going to die")
         try:
             while True:
                 request = self.request_queue.get_nowait()
@@ -111,6 +124,9 @@ class Session:
     async def respond(self, origin, headers):
         if not headers['RESP-TYPE']:
             raise ValueError
+
+        logger.info(f"Pushing response")
+        logger.debug(f"Response is {response}")
 
         header_bytes = dumps(headers)
         header_length = len(header_bytes)
