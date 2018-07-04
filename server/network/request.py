@@ -58,7 +58,6 @@ class Request:
                     raise ParseError('INVALID POST REQUEST LENGTH HEADER')
                 else:
                     self.headers['BIN'] += self.file_part[:needed_size]
-                    print(int(self.headers['LENGTH']), len(self.headers['BIN']), self.headers['BIN'])
                     self.done = (int(self.headers['LENGTH']) == len(self.headers['BIN']))
                     return self.file_part[needed_size:]
         return b''
@@ -69,7 +68,6 @@ class Request:
             lines.pop()
         if not lines:
             raise ParseError('BAD FIRST LINE')
-        pprint(lines)
         # check characters
         for num, line in enumerate(lines):
             if (1 < num < len(lines) - 1) and line.count(b':') != 1:
@@ -106,7 +104,6 @@ class Request:
                         raise ParseError('INVALID REQUEST TYPE')
 
                     if request_type == b'POST':
-                        print(other, request_type)
                         user = other.split()[0]
                     else:
                         user, resource = other.split()
@@ -131,7 +128,6 @@ class Request:
                 self.headers[key.decode('ascii')] = value.decode('ascii')
 
         self.check_headers()
-        pprint(self.headers)
 
     def check_headers(self):
         if self.headers['REQ-TYPE'] == 'GET':
