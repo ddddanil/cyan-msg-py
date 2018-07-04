@@ -2,6 +2,7 @@ from request import ALLOWED_CYAN_VERSION
 
 ALLOWED_CYAN_VERSION = ALLOWED_CYAN_VERSION.decode('ascii')
 
+
 class ErrResponse:
 
     def __init__(self, code, desc):
