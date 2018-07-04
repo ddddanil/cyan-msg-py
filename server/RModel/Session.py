@@ -3,7 +3,7 @@ import os
 import socket
 import uvloop
 from pickle import loads, dumps
-from functools import wraps
+from functools import wraps, partial
 from async_timeout import timeout
 
 UNNAMED = 0
@@ -36,7 +36,7 @@ class Session:
         self.connection_list = [(sock, addr)]
         self.request_queue = asyncio.Queue()
         self.loop = asyncio.get_event_loop()
-
+        self.loop.call_later(TIMEOUT_SECONDS, partial(self.time_to_die))
         logger.info(f'New session to {addr}, type {death_type}')
 
         asyncio.ensure_future(self.handle_connection(sock, addr))
@@ -105,6 +105,9 @@ class Session:
             await self.respond(request['ORIGIN'], response)
             self.response_counter += 1
 
+    def time_to_die(self):
+        self.alive = False
+
     async def check_death(self):
         logger.debug("Check death")
         if self.type is UNNAMED:
@@ -116,13 +119,10 @@ class Session:
 
     async def die(self):
         logger.info("This session is going to die")
-        try:
-            while True:
-                request = self.request_queue.get_nowait()
-                await self.respond(request['ORIGIN'],
+        while not self.request_queue.empty():
+            request = self.request_queue.get_nowait()
+            await self.respond(request['ORIGIN'],
                                    {'RESP-TYPE': 'ERR', 'CODE': 304, 'TEXT': "Repeat request due to timeout"})
-        except asyncio.QueueEmpty:
-            pass
 
         for sock, addr in self.connection_list:
             sock.close()
