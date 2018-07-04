@@ -146,12 +146,12 @@ def setup_logger():  # TODO external init through file
     debuglog.setLevel(logging.DEBUG)
     debuglog.setFormatter(simple_formatter)
 
-    master_logger = logging.getLogger('CYAN-msg')
+    master_logger = logging.getLogger('network')
     master_logger.setLevel(logging.DEBUG)
 
     master_logger.addHandler(debuglog)
 
-    logger = logging.getLogger('CYAN-msg.SessionManager')
+    logger = master_logger
 
 
 if __name__ == '__main__':
