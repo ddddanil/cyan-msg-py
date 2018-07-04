@@ -6,6 +6,10 @@ from request import Request, ParseError
 from response import *
 from pickle import dumps, loads
 from pprint import pprint
+import logging
+
+
+logger: logging.Logger = None
 
 
 class ConnectionServer:
@@ -16,14 +20,14 @@ class ConnectionServer:
         self.connections = []
         # Create tcp socket for accept
         # typical socket set up commands
-        print((host, port))
+        logger.debug((host, port))
         self.master_socket = socket.socket()
         self.master_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.master_socket.setblocking(False)
         self.master_socket.bind((host, port))
         self.master_socket.listen(socket.SOMAXCONN)
         self.loop = asyncio.get_event_loop()
-        print(f'Start server on {host}:{port}')
+        logger.info(f'Start server on {host}:{port}')
 
     async def serv(self):
         while True:
@@ -31,7 +35,7 @@ class ConnectionServer:
             sock.setblocking(False)
             solver = CyanSolver(sock, addr)
             self.connections.append(solver)
-            print(f'new connection from {addr}')
+            logger.info(f'new connection from {addr}')
             asyncio.ensure_future(solver.recv_from_user())
 
 
@@ -64,7 +68,7 @@ class CyanSolver:
             # I'm not sure about this place
             # Connection was close
             if not data:
-                print(f'close connection with {self.addr}')
+                logger.info(f'close connection with {self.addr}')
                 self.sock.close()
                 self.alive = False
                 return
@@ -72,30 +76,30 @@ class CyanSolver:
             try:
                 self.data = self.request.add(data)
             except ParseError as err:
-                print(err)
+                logger.debug(err)
                 await self.response_queue.put(ErrResponse(code=err.code, desc=err.desc))
-                print('err put')
+                logger.debug('err put')
                 self.request = Request()
                 
             if self.request.done:
-                print('request done')
+                logger.debug('request done')
                 await self.requests_queue.put(self.request)
-                print('request put')
+                logger.debug('request put')
                 self.request = Request()
     
     async def send_to_user(self):
         while True:
-            print(f'wait for response from queue (len={self.response_queue.qsize()})....')
+            logger.debug(f'wait for response from queue (len={self.response_queue.qsize()})....')
             resp = await self.response_queue.get()
-            print('new response from queue')
+            logger.debug('new response from queue')
             await self.loop.sock_sendall(self.sock, bytes(resp))
 
     async def send_to_session(self):
-        print('start send_to_session')
+        logger.debug('start send_to_session')
         while True:
-            print('waiting for request from  queue....')
+            logger.debug('waiting for request from  queue....')
             request = await self.requests_queue.get()
-            print(f'new request from {self.addr}')
+            logger.info(f'new request from {self.addr}')
             # Connect to Session Manager
             if not self.session:
                 self.session = socket.socket()
@@ -117,11 +121,11 @@ class CyanSolver:
         while True:
             raw_response = b''
             # get size of new request
-            size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+            size = int.from_bytes(await self.loop.sock_recv(self.session, 4), 'big')
             # get this request
             while len(raw_response) < size:
                 needed_size = min(size - len(raw_response), 1024)
-                raw_response += await self.loop.sock_recv(sock, needed_size)
+                raw_response += await self.loop.sock_recv(self.session, needed_size)
             headers = loads(raw_response)
             if headers['RESP_TYPE'] == 'ERR':
                 response = ErrResponse(headers)
@@ -132,11 +136,29 @@ class CyanSolver:
             else:
                 raise ValueError
             await self.loop.sock_sendall(self.sock, bytes(response))
-            
+
+
+def setup_logger():  # TODO external init through file
+    global logger
+
+    simple_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
+    debuglog = logging.StreamHandler()
+    debuglog.setLevel(logging.DEBUG)
+    debuglog.setFormatter(simple_formatter)
+
+    master_logger = logging.getLogger('CYAN-msg')
+    master_logger.setLevel(logging.DEBUG)
+
+    master_logger.addHandler(debuglog)
+
+    logger = logging.getLogger('CYAN-msg.SessionManager')
+
 
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
+
+    setup_logger()
 
     server = ConnectionServer()
     asyncio.ensure_future(server.serv())
