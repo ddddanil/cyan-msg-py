@@ -3,7 +3,7 @@ import socket
 import uvloop
 from pickle import loads
 from pprint import pprint
-from .Session import Session
+import Session
 
 
 class SessionManager:

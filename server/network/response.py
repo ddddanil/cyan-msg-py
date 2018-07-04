@@ -21,7 +21,7 @@ class ErrResponse:
         # CODE:{self.code}
         # TEXT:{self.desc}
         # ::
-        return f'CYAN {ALLOWED_CYAN_VERSION}\nERR\nCODE:{self.code}\nTEXT:{self.desc}\n::\n'.encode()
+        return f'CYAN {(ALLOWED_CYAN_VERSION.decode('ascii'))}\nERR\nCODE:{self.code}\nTEXT:{self.desc}\n::\n'.encode()
 
 
 class AckResponse:
@@ -40,7 +40,7 @@ class AckResponse:
         # USER-TOKEN:deadbeebcafe
         # ::
         return (
-                f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
+                f'CYAN {(ALLOWED_CYAN_VERSION.decode('ascii'))}\nACK {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
                 f'TYPE"{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
                 (f'CODE:{self.headers["CODE"]}\n' if self.headers.get("CODE") else '') +
                 (f'USER-TOKEN:{self.headers["USER-TOKEN"]}' if self.headers.get("USER-TOKEN") else '') +
@@ -65,7 +65,7 @@ class BinResponse:
         # CODE:200
         # ::
         return (
-                f'CYAN {ALLOWED_CYAN_VERSION}\nBIN {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
+                f'CYAN {(ALLOWED_CYAN_VERSION.decode('ascii'))}\nBIN {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
                 f'TYPE"{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nSENDER:{self.headers["SENDER"]}\n'
                 f'TIME-SENT:{self.headers["TIME-SENT"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
                 (f'READ-STATUS:{self.headers["READ-STATUS"]}\n' if self.headers.get("READ-STATUS") else '') +
