@@ -20,7 +20,10 @@ def run_while_alive(func):
                     await self.check_death()
                     if not self.alive:
                         return
-                    self.loop.call_soon(func(self, *args, **kwargs))
+                    try:
+                        self.loop.call_soon(func(self, *args, **kwargs))
+                    except KeyboardInterrupt:
+                        self.alive = False
         return new_function
 
 
@@ -126,7 +129,7 @@ class Session:
             raise ValueError
 
         logger.info(f"Pushing response")
-        logger.debug(f"Response is {response}")
+        logger.debug(f"Response is {headers}")
 
         header_bytes = dumps(headers)
         header_length = len(header_bytes)
