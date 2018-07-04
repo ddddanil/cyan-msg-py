@@ -41,11 +41,12 @@ class Session:
     @run_while_alive
     async def handle_connection(self, sock, addr):
         raw_request = b''
+        # get size of new request
         size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+        # get this request
         while len(raw_request) < size:
             needed_size = min(size - len(raw_request), 1024)
             raw_request += await self.loop.sock_recv(sock, needed_size)
-
         await self.request_queue.put(loads(raw_request))
 
     @run_while_alive

@@ -1,4 +1,4 @@
-from server.network.request import Request
+from ..network.request import Request
 import pytest
 
 
