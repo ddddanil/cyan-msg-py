@@ -2,7 +2,6 @@ import asyncio
 import socket
 import uvloop
 from pickle import loads
-from pprint import pprint
 import logging, logging.handlers
 import Session
 
@@ -38,16 +37,19 @@ class SessionManager:
         data = await self.loop.sock_recv(sock, 1024)
         param = loads(data)
         logger.debug(param)
-        if param['USER'] is not 'u000000':
+        if param['USER'] != 'u000000':
+            logger.debug('user not u000000')
+            current_session = None
             try:
                 current_session = self.session_list[param['USER-TOKEN']]
             except KeyError:
-                current_session = self.session_list[param['USER-TOKEN']] = Session.Session(sock, addr, Session.NAMED)
+                current_session = self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])
                 logger.info(f"New session on token {param['USER-TOKEN']}")
             finally:
                 await current_session.recieve_connection(sock, addr)
         else:
-            raise NotImplementedError
+            logger.debug('One time session')
+            Session.OneTimeSession(sock, addr)
 
 
 def setup_logger(): # TODO external init through file
@@ -65,6 +67,7 @@ def setup_logger(): # TODO external init through file
 
     logger = logging.getLogger('CYAN-msg.SessionManager')
     Session.logger = logging.getLogger('CYAN-msg.Session')
+
 
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())

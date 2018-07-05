@@ -105,7 +105,7 @@ class CyanSolver:
                 self.session = socket.socket()
                 self.session.setblocking(False)
                 await self.loop.sock_connect(self.session, self.session_addr)
-            
+                logger.debug('connected to session')
                 # Send user and token to session
                 await self.loop.sock_sendall(
                     self.session,
@@ -114,10 +114,13 @@ class CyanSolver:
                         'USER-TOKEN': request.headers['USER-TOKEN']
                     })
                 )
+                asyncio.ensure_future(self.recv_from_session())
             await self.loop.sock_sendall(self.session, bytes(request))
+            logger.debug('send request to session')
             pprint(request.headers)
 
     async def recv_from_session(self):
+        print('start recv_from_session')
         while True:
             raw_response = b''
             # get size of new request
@@ -127,11 +130,11 @@ class CyanSolver:
                 needed_size = min(size - len(raw_response), 1024)
                 raw_response += await self.loop.sock_recv(self.session, needed_size)
             headers = loads(raw_response)
-            if headers['RESP_TYPE'] == 'ERR':
+            if headers['RESP-TYPE'] == 'ERR':
                 response = ErrResponse(headers)
-            elif headers['RESP_TYPE'] == 'BIN':
+            elif headers['RESP-TYPE'] == 'BIN':
                 response = BinResponse(headers)
-            elif headers['RESP_TYPE'] == 'ACK':
+            elif headers['RESP-TYPE'] == 'ACK':
                 response = AckResponse(headers)
             else:
                 raise ValueError
