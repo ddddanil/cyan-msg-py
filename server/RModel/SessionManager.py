@@ -55,7 +55,8 @@ class SessionManager:
 def setup_logger(): # TODO external init through file
     global logger
     
-    simple_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
+    simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
+    wide_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
     debuglog = logging.StreamHandler()
     debuglog.setLevel(logging.DEBUG)
     debuglog.setFormatter(simple_formatter)

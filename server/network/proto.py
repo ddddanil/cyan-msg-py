@@ -114,7 +114,7 @@ class CyanSolver:
                         'USER-TOKEN': request.headers['USER-TOKEN']
                     })
                 )
-            asyncio.ensure_future(self.recv_from_session())
+                asyncio.ensure_future(self.recv_from_session())
             await self.loop.sock_sendall(self.session, bytes(request))
             logger.debug('send request to session')
             pprint(request.headers)
@@ -144,7 +144,8 @@ class CyanSolver:
 def setup_logger():  # TODO external init through file
     global logger
 
-    simple_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
+    simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
+    wide_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
     debuglog = logging.StreamHandler()
     debuglog.setLevel(logging.DEBUG)
     debuglog.setFormatter(simple_formatter)

@@ -20,7 +20,7 @@ class BaseSession:
         raw_request = b''
         # get size of new request
         size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
-        logger.debug(f'size = {size}')
+        logger.debug(f'New request\'s size = {size}')
         # get this request
         while len(raw_request) < size:
             needed_size = min(size - len(raw_request), 1024)
