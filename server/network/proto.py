@@ -89,7 +89,7 @@ class CyanSolver:
     
     async def send_to_user(self):
         while True:
-            logger.debug(f'wait for response from queue (len={self.response_queue.qsize()})....')
+            logger.debug(f'wait for response from queue....')
             resp = await self.response_queue.get()
             logger.debug('new response from queue')
             await self.loop.sock_sendall(self.sock, bytes(resp))
@@ -107,12 +107,13 @@ class CyanSolver:
                 await self.loop.sock_connect(self.session, self.session_addr)
                 logger.debug('connected to session')
                 # Send user and token to session
-                await self.loop.sock_sendall(
-                    self.session,
-                    dumps({
+                data = dumps({
                         'USER': request.headers['USER'],
                         'USER-TOKEN': request.headers['USER-TOKEN']
                     })
+                await self.loop.sock_sendall(
+                    self.session,
+                    len(data).to_bytes(4,'big') + data
                 )
                 asyncio.ensure_future(self.recv_from_session())
             await self.loop.sock_sendall(self.session, bytes(request))

@@ -34,12 +34,12 @@ class SessionManager:
             logger.info(f'new connection to SessionManager from {addr}')
 
     async def handle_solver(self, sock, addr):
-        data = await self.loop.sock_recv(sock, 1024)
+        len = int.from_bytes((await self.loop.sock_recv(sock, 4)), 'big')
+        data = await self.loop.sock_recv(sock, len)
         param = loads(data)
         logger.debug(param)
         if param['USER'] != 'u000000':
             logger.debug('user not u000000')
-            current_session = None
             try:
                 current_session = self.session_list[param['USER-TOKEN']]
             except KeyError:
