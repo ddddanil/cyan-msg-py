@@ -50,7 +50,7 @@ class BaseSession:
                 'RESP-TYPE': 'BIN',
                 'USER': request['USER'],
                 'RESOURCE': request['RESOURCE'],
-                'TYPE': request['ACCEPT-TYPE'],
+                'TYPE': 'text',
                 'CHECKSUM': 'IloveCats',
                 'LENGTH': 19,
                 'CODE': 200,
@@ -101,6 +101,7 @@ class TokenSession(BaseSession):
         self.token = token
         self.process_request_lock = asyncio.Lock()
         self.connection_list = [(sock, addr)]
+        logger.info(f'new connection to session({self.token}) from {addr}')
         self.tasks = [
             asyncio.ensure_future(self.handle_connection(sock, addr)),
             asyncio.ensure_future(self.process_requests()),
@@ -116,14 +117,15 @@ class TokenSession(BaseSession):
         while True:
             request = await self.recv_request(sock, addr)
             request['ORIGIN'] = (sock, addr)
+            logger.info(f'new request for ({self.token}) from {addr}')
             await self.requests_queue.put(request)
 
     async def process_requests(self):
         while True:
-            self.process_request_lock.acquire()
+            await self.process_request_lock.acquire()
             request = await self.requests_queue.get()
-            self.process_request(request)
-            self.process_request_lock.release()
+            await self.process_request(request)
+            await self.process_request_lock.release()
 
     async def die(self):
         # sleep 24 hours

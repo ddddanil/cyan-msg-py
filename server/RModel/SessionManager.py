@@ -45,7 +45,7 @@ class SessionManager:
             except KeyError:
                 current_session = self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])
                 logger.info(f"New session on token {param['USER-TOKEN']}")
-            finally:
+            else:
                 await current_session.recieve_connection(sock, addr)
         else:
             logger.debug('One time session')

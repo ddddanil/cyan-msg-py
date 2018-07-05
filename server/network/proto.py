@@ -114,7 +114,7 @@ class CyanSolver:
                         'USER-TOKEN': request.headers['USER-TOKEN']
                     })
                 )
-                asyncio.ensure_future(self.recv_from_session())
+            asyncio.ensure_future(self.recv_from_session())
             await self.loop.sock_sendall(self.session, bytes(request))
             logger.debug('send request to session')
             pprint(request.headers)
