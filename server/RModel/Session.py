@@ -108,7 +108,7 @@ class TokenSession(BaseSession):
             asyncio.ensure_future(self.die()),
         ]
 
-    async def recieve_connection(self, sock, addr):
+    async def receive_connection(self, sock, addr):
         logger.info(f'new connection to session({self.token}) from {addr}')
         self.connection_list.append((sock, addr))
         self.tasks.append(asyncio.ensure_future(self.handle_connection(sock, addr)))

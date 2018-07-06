@@ -5,15 +5,19 @@ from pickle import loads
 import logging, logging.handlers
 import Session
 
+# 0 one time token
+# 1 24 hours token
+TOKENS = {}
+
+logger = None
+
 
 class SessionManager:
 
     def __init__(self, host='0.0.0.0', port=12346):
         self.host = host
         self.port = port
-
         self.session_list = {}
-        self.tokens = {}
         # Create tcp socket for accept
         # typical socket set up commands
         logger.debug((host, port))
@@ -39,17 +43,20 @@ class SessionManager:
         param = loads(data)
         logger.debug(param)
         if param['USER'] != 'u000000':
-            logger.debug('user not u000000')
-            try:
-                current_session = self.session_list[param['USER-TOKEN']]
-            except KeyError:
-                current_session = self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])
-                logger.info(f"New session on token {param['USER-TOKEN']}")
+            # session for /login
+            if TOKENS[param['USER-TOKEN']] == 0:
+                Session.OneTimeSession(sock, addr)
+            # 24 hours session
             else:
-                await current_session.recieve_connection(sock, addr)
+                # session exist
+                if self.session_list.get(param['USER-TOKEN']):
+                    self.session_list[param['USER-TOKEN']].receive_connection(sock, addr)
+                # new session
+                else:
+                    self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])
         else:
-            logger.debug('One time session')
             Session.OneTimeSession(sock, addr)
+            logger.debug(f'create OneTimeSession for u000000 {addr}')
 
 
 def setup_logger(): # TODO external init through file
