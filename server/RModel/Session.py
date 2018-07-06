@@ -19,7 +19,11 @@ class BaseSession:
     async def recv_request(self, sock, addr):
         raw_request = b''
         # get size of new request
-        size = int.from_bytes(await self.loop.sock_recv(sock, 4), 'big')
+        raw_size = await self.loop.sock_recv(sock, 4)
+        # connection close
+        if not raw_size:
+            return None
+        size = int.from_bytes(raw_size, 'big')
         logger.debug(f'New request\'s size = {size}')
         # get this request
         while len(raw_request) < size:
@@ -29,10 +33,11 @@ class BaseSession:
         request['ORIGIN'] = (sock, addr)
 
         logger.info(f"New request from {addr}")
-        logger.debug(f"{request}")
+        # logger.debug(f"{request}")
         return request
 
     async def process_request(self, request):
+        logger.debug('start process_request')
         # TODO Process request
         response = None
         if request['REQ-TYPE'] == 'POST':
@@ -68,7 +73,7 @@ class BaseSession:
             raise ValueError
 
         logger.info(f"Pushing response")
-        logger.debug(f"Response is {headers}")
+        # logger.debug(f"Response is {headers}")
 
         header_bytes = dumps(headers)
         header_length = len(header_bytes)
@@ -76,6 +81,9 @@ class BaseSession:
         sock, addr = origin
         await self.loop.sock_sendall(sock, header_result)
         logger.debug('Response was send')
+
+
+############################################
 
 
 class OneTimeSession(BaseSession):
@@ -89,8 +97,15 @@ class OneTimeSession(BaseSession):
 
     async def handle_client(self):
         request = await self.recv_request(self.sock, self.addr)
+        if not request:
+            logger.info('lose connection')
+            return
         logger.debug('new request from solver')
         await self.process_request(request)
+        self.sock.close()
+        logger.info('one time session died')
+
+#############################################
 
 
 class TokenSession(BaseSession):
@@ -116,14 +131,20 @@ class TokenSession(BaseSession):
     async def handle_connection(self, sock, addr):
         while True:
             request = await self.recv_request(sock, addr)
+            if not request:
+                logger.info('lose connection')
+                sock.close()
+                return
             request['ORIGIN'] = (sock, addr)
             logger.info(f'new request for ({self.token}) from {addr}')
             await self.requests_queue.put(request)
 
     async def process_requests(self):
+        logger.debug('process requests start...')
         while True:
             await self.process_request_lock.acquire()
             request = await self.requests_queue.get()
+            logger.debug('processing request...')
             await self.process_request(request)
             await self.process_request_lock.release()
 

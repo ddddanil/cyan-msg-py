@@ -125,7 +125,13 @@ class CyanSolver:
         while True:
             raw_response = b''
             # get size of new request
-            size = int.from_bytes(await self.loop.sock_recv(self.session, 4), 'big')
+            raw_size = await self.loop.sock_recv(self.session, 4)
+            if not raw_size:
+                self.session = None
+                logger.debug('close connection with session')
+                return
+
+            size = int.from_bytes(raw_size, 'big')
             # get this request
             while len(raw_response) < size:
                 needed_size = min(size - len(raw_response), 1024)

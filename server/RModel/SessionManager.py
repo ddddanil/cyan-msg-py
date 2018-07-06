@@ -44,7 +44,7 @@ class SessionManager:
         logger.debug(param)
         if param['USER'] != 'u000000':
             # session for /login
-            if TOKENS[param['USER-TOKEN']] == 0:
+            if TOKENS.get(param['USER-TOKEN']) == 0:
                 Session.OneTimeSession(sock, addr)
             # 24 hours session
             else:

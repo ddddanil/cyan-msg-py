@@ -1,5 +1,6 @@
-from ..network.request import Request
+from .request import Request
 import pytest
+import sys
 
 
 class TestRequest:
@@ -33,10 +34,10 @@ class TestRequest:
             b"TYPE:img\n" + \
             b"CHECKSUM:000000\n" + \
             b"TIME-SENT:0001\n" + \
-            b"LENGTH:14\n" + \
+            b"LENGTH:16\n" + \
             b"BIN::\n" + \
             b"binary file here"
-        assert req.add(data) == b're'
+        assert req.add(data) == b''
         assert req.done is True
         assert req.headers == {
             'CYAN': '0.1',
@@ -47,6 +48,6 @@ class TestRequest:
             'TYPE': 'img',
             'CHECKSUM': '000000',
             'TIME-SENT': '0001',
-            'LENGTH': '14',
-            'BIN': b'binary file he'
+            'LENGTH': '16',
+            'BIN': b'binary file here'
         }
