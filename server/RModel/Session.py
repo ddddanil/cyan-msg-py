@@ -4,7 +4,6 @@ import socket
 import uvloop
 from pickle import loads, dumps
 from functools import wraps, partial
-from async_timeout import timeout
 
 # 24 hours
 TIMEOUT_SECONDS = 86400
