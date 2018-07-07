@@ -144,11 +144,14 @@ class TokenSession(BaseSession):
     async def process_requests(self):
         logger.debug('process requests start...')
         while True:
-            await self.process_request_lock.acquire()
+            logger.debug('wait request from queue')
             request = await self.requests_queue.get()
+            logger.debug('new request')
+            await self.process_request_lock.acquire()
             logger.debug('processing request...')
             await self.process_request(request)
-            await self.process_request_lock.release()
+            self.process_request_lock.release()
+            logger.debug('successfully send send request')
 
     async def die(self):
         logger.debug(f'die ({self.token}) start')
