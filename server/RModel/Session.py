@@ -37,19 +37,21 @@ class BaseSession:
         return request
 
     async def process_request(self, request):
-        logger.debug('start process_request')
+        logger.debug(f'start process_request {(request["REQ-TYPE"] == "POST")}')
         # TODO Process request
         response = None
         if request['REQ-TYPE'] == 'POST':
+
             response = {
                 'RESP-TYPE': 'ACK',
                 'USER': request['USER'],
-                'RESOURCE': request['RESOURCE'],
+                'RESOURCE': 'ID_OF_RESOURCE',
                 'TYPE': request['TYPE'],
                 'CHECKSUM': request['CHECKSUM'],
                 'LENGTH': request['LENGTH'],
                 'CODE': 200
             }
+            logger.debug(f'===================================\n{response}')
         elif request['REQ-TYPE'] == 'GET':
             response = {
                 'RESP-TYPE': 'BIN',
@@ -149,6 +151,7 @@ class TokenSession(BaseSession):
             await self.process_request_lock.release()
 
     async def die(self):
+        logger.debug(f'die ({self.token}) start')
         # sleep 24 hours
         await asyncio.sleep(TIMEOUT_SECONDS)
         await self.process_request_lock.acquire()

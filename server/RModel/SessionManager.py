@@ -50,7 +50,7 @@ class SessionManager:
             else:
                 # session exist
                 if self.session_list.get(param['USER-TOKEN']):
-                    self.session_list[param['USER-TOKEN']].receive_connection(sock, addr)
+                    await self.session_list[param['USER-TOKEN']].receive_connection(sock, addr)
                 # new session
                 else:
                     self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])

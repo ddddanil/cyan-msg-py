@@ -43,7 +43,7 @@ class AckResponse:
         # ::
         return (
                 f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
-                f'TYPE"{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
+                f'TYPE:{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
                 (f'CODE:{self.headers["CODE"]}\n' if self.headers.get("CODE") else '') +
                 (f'USER-TOKEN:{self.headers["USER-TOKEN"]}' if self.headers.get("USER-TOKEN") else '') +
                 '::\n'
