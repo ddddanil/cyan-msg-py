@@ -205,6 +205,7 @@ Following types of media are currently supported
 - `text`
 - `img`
 - `video`
+- `audio`
 - `other`
 
 #### `CHECKSUM`
