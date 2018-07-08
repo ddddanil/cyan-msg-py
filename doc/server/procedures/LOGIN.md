@@ -14,8 +14,9 @@ Login sequence
 ### First request
 
 ```s
-POST u000000 /login
+POST u000000
 USER-TOKEN:any_random_string
+TARGET:/login
 BIN::
 {
     'email':'abc@mail.gov',
