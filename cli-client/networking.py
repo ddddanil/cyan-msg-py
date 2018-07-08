@@ -1,5 +1,6 @@
 import socket
 import re
+from CYANrequest import Request
 from CYANresponse import Response
 
 logger = None
@@ -18,7 +19,7 @@ class Connection():
         self.server_addr = str_to_ip(server)
         self.server_ip, self.server_port = self.server_addr
         self.socket = socket.socket()
-        self.response = Response()
+        self.response = None
 
     def try_send(self, data:bytes):
         logger.debug("Sending to server")
@@ -39,8 +40,7 @@ class Connection():
         while True:
             try:
                 bytes_recv = self.socket.recv(1024)
-                logger.debug('bytes_recv:')
-                logger.debug(bytes_recv)
+                logger.debug(f'bytes_recv: {bytes_recv}')
                 if self.response.add(bytes_recv):
                     return True
 
@@ -50,9 +50,10 @@ class Connection():
                 logger.debug("Reconnecting...")
                 self.socket.connect(self.server_addr)
 
-    def exchange(self, request:bytes):
+    def exchange(self, request:Request):
         logger.debug('exchange')
-        self.try_send(request)
+        self.response = Response()
+        self.try_send(bytes(request))
         # False if connection was lost and Response not completed
         # True if Response is completed
         if not self.try_recieve():
