@@ -26,15 +26,29 @@ class MalformedResponseError(Exception):
         return transform
 
 class Response():
-    def __init__(self, raw_data:bytes):
-        self.raw_bytes = raw_data
+    def __init__(self):
+        self.raw_bytes = b''
         self.response = {}
         self.raw_head = ''
         self.file = b''
 
         self.parse()
 
+    def add(self, raw_data):
+        logger.debug('raw_data')
+        logger.debug(raw_data)
+        if not self.response:
+            self.raw_bytes += raw_data
+
+        if b'::' in self.raw_bytes and not self.response:
+            self.parse()
+
+        else:
+            self.file += raw_data
+            return len(self.file) == int(self.response['LENGTH'])
+
     def parse(self):
+        logger.debug(self.raw_bytes)
         parts = self.raw_bytes.split(b'::', 1)
         self.raw_head = lines = parts[0].decode('ascii').split('\n')
         self.file = parts[1]

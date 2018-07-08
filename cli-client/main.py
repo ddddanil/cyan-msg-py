@@ -114,9 +114,8 @@ def main():
 
     request = CYANrequest.Request(conf)
     connection = networking.Connection(conf['SERVER'])
-    resp_bytes = connection.exchange(bytes(request))
-    response = CYANresponse.Response(resp_bytes)
-    
+    logger.debug('try create response')
+    response = connection.exchange(bytes(request))
     response.present_result(conf['FILE'])
 
 if __name__ == '__main__':

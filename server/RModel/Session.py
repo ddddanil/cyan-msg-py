@@ -4,6 +4,7 @@ import socket
 import uvloop
 from pickle import loads, dumps
 from functools import wraps, partial
+from ResourceManager import ResourceManager
 
 # 24 hours
 TIMEOUT_SECONDS = 86400
@@ -14,6 +15,7 @@ class BaseSession:
 
     def __init__(self):
         self.loop = asyncio.get_event_loop()
+        self.resource_manager = ResourceManager()
 
     async def recv_request(self, sock, addr):
         raw_request = b''

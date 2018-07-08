@@ -1,5 +1,6 @@
 import socket
 import re
+from CYANresponse import Response
 
 logger = None
 ip_regex = re.compile(r"((?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}):(\d+)")
@@ -17,6 +18,7 @@ class Connection():
         self.server_addr = str_to_ip(server)
         self.server_ip, self.server_port = self.server_addr
         self.socket = socket.socket()
+        self.response = Response()
 
     def try_send(self, data:bytes):
         logger.debug("Sending to server")
@@ -35,17 +37,24 @@ class Connection():
     def try_recieve(self):
         logger.debug("Receiving from server")
         while True:
-            data = b''
             try:
                 bytes_recv = self.socket.recv(1024)
-                if not bytes_recv: break
-                data += bytes_recv
+                logger.debug('bytes_recv:')
+                logger.debug(bytes_recv)
+                if self.response.add(bytes_recv):
+                    return True
+
+                if not bytes_recv: return False
+
             except OSError:
                 logger.debug("Reconnecting...")
                 self.socket.connect(self.server_addr)
-        return data
 
     def exchange(self, request:bytes):
+        logger.debug('exchange')
         self.try_send(request)
-        bytes_recv = self.try_recieve()
-        return bytes_recv
+        # False if connection was lost and Response not completed
+        # True if Response is completed
+        if self.try_recieve():
+            raise ConnectionRefusedError
+        return self.response

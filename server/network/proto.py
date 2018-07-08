@@ -1,6 +1,7 @@
 import asyncio
 from async_timeout import timeout
 import uvloop
+from os import environ
 import socket
 from request import Request, ParseError
 from response import *
@@ -63,15 +64,16 @@ class CyanSolver:
                 # 5 minutes for send data
                 with timeout(300):
                     data = self.data + await self.loop.sock_recv(self.sock, 1024)
+                if not data:
+                    logger.info(f'close connection with {self.addr}')
+                    await self.stop()
+                    return
+
             except asyncio.TimeoutError:
                 self.request = Request()
 
             # I'm not sure about this place
             # Connection was close
-            if not data:
-                logger.info(f'close connection with {self.addr}')
-                await self.stop()
-                return
 
             try:
                 self.data = self.request.add(data)
@@ -157,6 +159,7 @@ class CyanSolver:
             self.session.shutdown(socket.SHUT_RDWR)
             self.session.close()
 
+
 def setup_logger():  # TODO external init through file
     global logger
 
@@ -177,7 +180,7 @@ def setup_logger():  # TODO external init through file
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     loop = asyncio.get_event_loop()
-
+    environ['PYTHONASYNCIODEBUG'] = '1'
     setup_logger()
 
     server = ConnectionServer()
