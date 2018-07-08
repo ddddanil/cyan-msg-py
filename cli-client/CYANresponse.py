@@ -41,7 +41,7 @@ class Response():
         if b'::' in self.raw_bytes and not self.response:
             self.parse()
 
-        if self.response['RESP-TYPE'] == 'ACK':
+        if self.response['RESP-TYPE'] in ('ACK', 'ERR'):
             return True
 
         else:
