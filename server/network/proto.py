@@ -49,13 +49,14 @@ class CyanSolver:
         self.requests_queue = asyncio.Queue()
         self.response_queue = asyncio.Queue()
         self.session = None
+        self.tasks = []
         self.session_addr = ('127.0.0.1', 12346)
         self.loop = asyncio.get_event_loop()
         self.data = b''
 
     async def recv_from_user(self):
-        asyncio.ensure_future(self.send_to_session())
-        asyncio.ensure_future(self.send_to_user())
+        self.tasks.append(asyncio.ensure_future(self.send_to_session()))
+        self.tasks.append(asyncio.ensure_future(self.send_to_user()))
         while True:
             data = b''
             try:
@@ -69,8 +70,8 @@ class CyanSolver:
             # Connection was close
             if not data:
                 logger.info(f'close connection with {self.addr}')
-                self.sock.close()
-                self.alive = False
+                self.stop()
+                await self.stop()
                 return
 
             try:
@@ -113,9 +114,9 @@ class CyanSolver:
                     })
                 await self.loop.sock_sendall(
                     self.session,
-                    len(data).to_bytes(4,'big') + data
+                    len(data).to_bytes(4, 'big') + data
                 )
-                asyncio.ensure_future(self.recv_from_session())
+                self.tasks.append(asyncio.ensure_future(self.recv_from_session()))
             await self.loop.sock_sendall(self.session, bytes(request))
             logger.debug('send request to session')
             pprint(request.headers)
@@ -136,7 +137,7 @@ class CyanSolver:
             while len(raw_response) < size:
                 needed_size = min(size - len(raw_response), 1024)
                 raw_response += await self.loop.sock_recv(self.session, needed_size)
-            headers = loads(raw_response)
+            headers: dict = loads(raw_response)
             if headers['RESP-TYPE'] == 'ERR':
                 response = ErrResponse(headers)
             elif headers['RESP-TYPE'] == 'BIN':
@@ -147,6 +148,15 @@ class CyanSolver:
                 raise ValueError
             await self.loop.sock_sendall(self.sock, bytes(response))
 
+    async def stop(self):
+        for task in self.tasks:
+            task.cancel()
+
+        self.sock.shutdown(socket.SHUT_RDWR)
+        self.sock.close()
+        if self.session:
+            self.session.shutdown(socket.SHUT_RDWR)
+            self.session.close()
 
 def setup_logger():  # TODO external init through file
     global logger
