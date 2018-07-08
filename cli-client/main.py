@@ -17,12 +17,12 @@ def get_parser():
     parse_up = subparser.add_parser("u")
     parse_up.add_argument("--server", "-s", type=str, metavar="srv", help="Override the default server stored in your config")
     parse_up.add_argument("--target", "-t", type=str, required=True, metavar="USER", help="A user to whom you want to send this file")
-    parse_up.add_argument("--input", type=argparse.FileType("rb"), required=True, metavar="file", help="File to send")
+    parse_up.add_argument("--input", type=argparse.FileType("rb"), default=sys.stdin, metavar="file", help="File to send")
 
     parse_down = subparser.add_parser("d")
     parse_down.add_argument("--server", "-s", type=str, metavar="srv", help="Override the default server stored in your config")
     parse_down.add_argument("--resource", "-r", type=str, required=True, metavar="RESOURCE", help="Which resource you want to download")
-    parse_down.add_argument("--output", type=argparse.FileType("wb"), required=True, metavar="file", help="File to save")
+    parse_down.add_argument("--output", type=argparse.FileType("wb"), default=sys.stdout, metavar="file", help="File to save")
 
     return (arg_parcer, subparser)
 
@@ -31,13 +31,15 @@ def setup_logger():
     config.touch_conf_file('log/default.log')
     config.touch_conf_file('log/warning.log')
 
+    logging.addLevelName(5, 'CHECK')
+
     simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
-    wide_formatter = logging.Formatter('%(asctime)-10s - %(name)-10.10s - %(levelname)-8s -= %(message)s =-')
-    very_wide_formatter = logging.Formatter('| %(asctime)-20s | - | %(name)-20.20s | - | %(levelname) -20s |\n| %(message)-74s |\n')
+    wide_formatter = logging.Formatter('%(asctime)-10s - %(name)-24.24s - %(levelname)-8s -= %(message)s =-')
+    very_wide_formatter = logging.Formatter('| %(asctime)-20s | - | %(name)-20.20s | - | %(levelname) -20s |\n| %(message)-77s |\n')
 
     console_log = logging.StreamHandler()
     if DEBUG:
-        console_log.setLevel(logging.DEBUG)
+        console_log.setLevel(logging.NOTSET)
     else:
         console_log.setLevel(logging.ERROR)
     console_log.setFormatter(simple_formatter)
@@ -51,7 +53,7 @@ def setup_logger():
     warn_log.setFormatter(very_wide_formatter)
 
     master_logger = logging.getLogger('CYAN-cli')
-    master_logger.setLevel(logging.DEBUG)
+    master_logger.setLevel(logging.NOTSET)
     
     master_logger.addHandler(console_log)
     master_logger.addHandler(file_log)
@@ -61,6 +63,7 @@ def setup_logger():
     logger = logging.getLogger('CYAN-cli.main')
     config.logger = logging.getLogger('CYAN-cli.config')
     CYANrequest.logger = logging.getLogger('CYAN-cli.request')
+    CYANresponse.logger = logging.getLogger('CYAN-cli.response')
     networking.logger = logging.getLogger('CYAN-cli.network')
 
 def merge_conf_arg(args, conf):
@@ -87,7 +90,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    logger.debug(args)
+    logger.log(5, args)
 
     if args.command == 'config':
         config.process_args(args)
@@ -96,7 +99,7 @@ def main():
     conf = config.get_config()
 
     if conf['USER'] is None:
-        logger.warning("No user was stored in the config")
+        logger.error("No user was stored in the config")
         print(f"No user stored.\nPlease run `{parser.prog} config` to set up necessary files.")
         sys.exit(2)
     
@@ -106,6 +109,8 @@ def main():
     connection = networking.Connection(conf['SERVER'])
     resp_bytes = connection.exchange(bytes(request))
     response = CYANresponse.Response(resp_bytes)
+    
+    response.present_result(conf['FILE'])
 
 if __name__ == '__main__':
     main()

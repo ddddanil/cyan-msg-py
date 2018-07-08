@@ -3,6 +3,7 @@ from time import time
 from hashlib import sha1
 
 logger = None
+CURRENT_VERSION = b'0.1'
 
 def get_cyan_type(magic_bytes: bytes):
     info = fleep.get(magic_bytes)
@@ -36,7 +37,7 @@ class Request():
         byte_lines = []
 
         # 1st line
-        byte_lines.append(b'CYAN 0.1')
+        byte_lines.append(b'CYAN ' + CURRENT_VERSION)
         # 2nd line
         byte_lines.append(f'{request["REQ-TYPE"]} {request["USER"]} {request["RESOURCE"]}'.encode('ascii'))
 

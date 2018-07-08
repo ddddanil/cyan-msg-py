@@ -11,6 +11,12 @@ config_files = {  # config-key : filename
     "PASSWD": '.password',
     "USER-TOKEN": '.token'
 }
+validate_regex = {
+    "EMAIL": r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+",
+    "USER": r"u[0-9]{6}",
+    "PASSWD": r"[a-zA-Z0-9_#$^+=!*()@%&\-]{5,}",
+    "SERVER": r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}:(\d+)"
+}
 
 def add_subparser(subparser):
     parse_conf = subparser.add_parser("config")
@@ -79,7 +85,7 @@ def ask_value(prompt, valid_re, is_hidden=False):
         valid = re.search(valid_re, value)
         print(valid)
         if valid:
-            return valid.group(1)
+            return valid.group(0)
         else:
             if not ask_confirm("Invalid input. Retry? (Y/n) "):
                 return None
@@ -90,10 +96,10 @@ def full_config():
     new_config = {}
     logger.info("Inputting new configuration")
 
-    new_config['EMAIL'] = ask_value("Your email: ", r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)")
-    new_config['USER'] = ask_value("Your username: ", r"(u[0-9]{6})")
-    new_config['PASSWD'] = ask_value("Your password: ", r"([a-zA-Z0-9_#$^+=!*()@%&\-]{5,})", True)
-    new_config['SERVER'] = ask_value("Your default server: ", r"((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}:(\d+))")
+    new_config['EMAIL'] = ask_value("Your email: ", validate_regex['EMAIL'])
+    new_config['USER'] = ask_value("Your username: ", validate_regex['USER'])
+    new_config['PASSWD'] = ask_value("Your password: ", validate_regex['PASSWD'], True)
+    new_config['SERVER'] = ask_value("Your default server: ", validate_regex['SERVER'])
 
     save_config(new_config)
 
