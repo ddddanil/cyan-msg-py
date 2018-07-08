@@ -39,7 +39,7 @@ def setup_logger():
 
     console_log = logging.StreamHandler()
     if DEBUG:
-        console_log.setLevel(logging.NOTSET)
+        console_log.setLevel(logging.DEBUG)
     else:
         console_log.setLevel(logging.ERROR)
     console_log.setFormatter(simple_formatter)
@@ -90,7 +90,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    logger.log(5, args)
+    logger.debug(args)
 
     if args.command == 'config':
         config.process_args(args)
