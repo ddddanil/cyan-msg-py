@@ -71,7 +71,10 @@ def merge_conf_arg(args, conf):
         conf['SERVER'] = args.server
 
     conf['CMD'] = args.command
-    conf['TARGET'] = args.target
+    try:
+        conf['TARGET'] = args.target
+    except AttributeError:
+        conf["TARGET"] = ''
     try:
         conf['RESOURCE'] = args.resource
     except AttributeError:
