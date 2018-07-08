@@ -79,7 +79,10 @@ def merge_conf_arg(args, conf):
         conf['RESOURCE'] = args.resource
     except AttributeError:
         conf["RESOURCE"] = ''
-    conf['FILE'] = args.input or args.output
+    try:
+        conf['FILE'] = args.input
+    except AttributeError:
+        conf['FILE'] = args.output
 
     return conf
 
