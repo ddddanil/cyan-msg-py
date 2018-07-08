@@ -33,8 +33,7 @@ class Response():
         self.file = b''
 
     def add(self, raw_data):
-        logger.debug('raw_data')
-        logger.debug(raw_data)
+        logger.debug(f'raw_data {raw_data}')
         if not self.response:
             self.raw_bytes += raw_data
             raw_data = b''
