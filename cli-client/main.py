@@ -11,22 +11,23 @@ DEBUG = 1
 logger = None
 
 def get_parser():
-    arg_parcer = argparse.ArgumentParser(description="A utility to forward files using CYAN-msg")
-    subparser = arg_parcer.add_subparsers(help='Available commands', dest='command')
+    arg_parser = argparse.ArgumentParser(description="A utility to forward files using CYAN-msg")
+    arg_parser.add_argument('--verbose', '-v', action='count', help="Set verbosity level from 0 to 3")
+    subparser = arg_parser.add_subparsers(help='Available commands', dest='command')
 
     parse_up = subparser.add_parser("u")
     parse_up.add_argument("--server", "-s", type=str, metavar="srv", help="Override the default server stored in your config")
     parse_up.add_argument("--target", "-t", type=str, required=True, metavar="USER", help="A user to whom you want to send this file")
-    parse_up.add_argument("--input", type=argparse.FileType("rb"), default=sys.stdin, metavar="file", help="File to send")
+    parse_up.add_argument("--file", type=argparse.FileType("rb"), default=sys.stdin, metavar="file", help="File to send")
 
     parse_down = subparser.add_parser("d")
     parse_down.add_argument("--server", "-s", type=str, metavar="srv", help="Override the default server stored in your config")
     parse_down.add_argument("--resource", "-r", type=str, required=True, metavar="RESOURCE", help="Which resource you want to download")
-    parse_down.add_argument("--output", type=argparse.FileType("wb"), default=sys.stdout, metavar="file", help="File to save")
+    parse_down.add_argument("--file", type=argparse.FileType("wb"), default=sys.stdout, metavar="file", help="File to save")
 
-    return (arg_parcer, subparser)
+    return (arg_parser, subparser)
 
-def setup_logger():
+def setup_logger(verbosity=0):
     config.touch_conf_dir("log/")
     config.touch_conf_file('log/default.log')
     config.touch_conf_file('log/warning.log')
@@ -38,9 +39,13 @@ def setup_logger():
     very_wide_formatter = logging.Formatter('| %(asctime)-20s | - | %(name)-20.20s | - | %(levelname) -20s |\n| %(message)-77s |\n')
 
     console_log = logging.StreamHandler()
-    if DEBUG:
+    if verbosity == 3:
+        console_log.setLevel(logging.NOTSET)
+    elif verbosity == 2:
         console_log.setLevel(logging.DEBUG)
-    else:
+    elif verbosity == 1:
+        console_log.setLevel(logging.INFO)
+    elif verbosity == 0:
         console_log.setLevel(logging.ERROR)
     console_log.setFormatter(simple_formatter)
 
@@ -53,7 +58,7 @@ def setup_logger():
     warn_log.setFormatter(very_wide_formatter)
 
     master_logger = logging.getLogger('CYAN-cli')
-    master_logger.setLevel(logging.NOTSET)
+    master_logger.setLevel(logging.DEBUG)
     
     master_logger.addHandler(console_log)
     master_logger.addHandler(file_log)
@@ -71,26 +76,22 @@ def merge_conf_arg(args, conf):
         conf['SERVER'] = args.server
 
     conf['CMD'] = args.command
+
     try:
         conf['TARGET'] = args.target
     except AttributeError:
-        conf["TARGET"] = ''
-    try:
         conf['RESOURCE'] = args.resource
-    except AttributeError:
-        conf["RESOURCE"] = ''
-    try:
-        conf['FILE'] = args.input
-    except AttributeError:
-        conf['FILE'] = args.output
+
+    conf['FILE'] = args.file
 
     return conf
 
 def main():
-    setup_logger()
     parser, subparser = get_parser()
     config.add_subparser(subparser)
     args = parser.parse_args()
+
+    setup_logger(args.verbose)
 
     if not args.command:
         parser.print_help()
