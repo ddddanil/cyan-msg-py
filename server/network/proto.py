@@ -70,7 +70,6 @@ class CyanSolver:
             # Connection was close
             if not data:
                 logger.info(f'close connection with {self.addr}')
-                self.stop()
                 await self.stop()
                 return
 
