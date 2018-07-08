@@ -146,7 +146,7 @@ class CyanSolver:
                 response = AckResponse(headers)
             else:
                 raise ValueError
-            await self.loop.sock_sendall(self.sock, bytes(response))
+            await self.response_queue.put(response)
 
     async def stop(self):
         for task in self.tasks:
