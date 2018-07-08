@@ -42,30 +42,35 @@ class BaseSession:
         # TODO Process request
         response = None
         if request['REQ-TYPE'] == 'POST':
-
-            response = {
-                'RESP-TYPE': 'ACK',
-                'USER': request['USER'],
-                'RESOURCE': 'ID_OF_RESOURCE',
-                'TYPE': request['TYPE'],
-                'CHECKSUM': request['CHECKSUM'],
-                'LENGTH': request['LENGTH'],
-                'CODE': 200
-            }
+            if request['TARGET'] == '/login':
+                response = await self.resource_manager.process_request(request)
+            else:
+                response = {
+                    'RESP-TYPE': 'ACK',
+                    'USER': request['USER'],
+                    'RESOURCE': 'ID_OF_RESOURCE',
+                    'TYPE': request['TYPE'],
+                    'CHECKSUM': request['CHECKSUM'],
+                    'LENGTH': request['LENGTH'],
+                    'CODE': 200
+                }
             logger.debug(f'===================================\n{response}')
         elif request['REQ-TYPE'] == 'GET':
-            response = {
-                'RESP-TYPE': 'BIN',
-                'USER': request['USER'],
-                'RESOURCE': request['RESOURCE'],
-                'TYPE': 'text',
-                'CHECKSUM': 'IloveCats',
-                'LENGTH': 19,
-                'CODE': 200,
-                'SENDER': 'u000000',
-                'TIME-SENT': 88008800,
-                'BIN': b'You did a great job'
-            }
+            if request['RESOURCE'] == '/login':
+                response = await self.resource_manager.process_request(request)
+            else:
+                response = {
+                    'RESP-TYPE': 'BIN',
+                    'USER': request['USER'],
+                    'RESOURCE': request['RESOURCE'],
+                    'TYPE': 'text',
+                    'CHECKSUM': 'IloveCats',
+                    'LENGTH': 19,
+                    'CODE': 200,
+                    'SENDER': 'u000000',
+                    'TIME-SENT': 88008800,
+                    'BIN': b'You did a great job'
+                }
         if not response:
             raise ValueError
         logger.debug(f"Processed\n{request}\nto\n{response}")
