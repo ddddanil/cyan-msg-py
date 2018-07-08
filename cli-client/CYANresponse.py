@@ -10,7 +10,7 @@ second_line_re = re.compile(r'(BIN|ACK|ERR) (u[0-9]{6})\s?((?:/[a-zA-Z0-9_]+)(/[
 # Group 1 - type
 # Group 2 - user
 # Group 3 - resource
-header_re = re.compile(r'([a-zA-Z0-9\-/])\:([a-zA-Z0-9\-/])')
+header_re = re.compile(r'([a-zA-Z0-9\-/]+)\:([a-zA-Z0-9\-/]+)')
 # Group 1 - key
 # Group 2 - value
 
@@ -32,24 +32,28 @@ class Response():
         self.raw_head = ''
         self.file = b''
 
-        self.parse()
-
     def add(self, raw_data):
         logger.debug('raw_data')
         logger.debug(raw_data)
         if not self.response:
             self.raw_bytes += raw_data
+            raw_data = b''
 
         if b'::' in self.raw_bytes and not self.response:
             self.parse()
 
+        if self.response['RESP-TYPE'] == 'ACK':
+            return True
+
         else:
             self.file += raw_data
+            logger.debug(f"{len(self.file)}, {int(self.response['LENGTH'])}")
             return len(self.file) == int(self.response['LENGTH'])
 
     def parse(self):
         logger.debug(self.raw_bytes)
-        parts = self.raw_bytes.split(b'::', 1)
+        sep = b'::\n' if b'::\n' in self.raw_bytes else b'::'
+        parts = self.raw_bytes.split(sep, 1)
         self.raw_head = lines = parts[0].decode('ascii').split('\n')
         self.file = parts[1]
 
@@ -74,7 +78,7 @@ class Response():
             else:
                 match = header_re.fullmatch(line)
                 if not match:
-                    raise MalformedResponseError
+                    raise MalformedResponseError(line)
                 self.response[match.group(1)] = match.group(2)
 
     def save_file(self, file:FileType('wb')):

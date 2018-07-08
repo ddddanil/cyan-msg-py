@@ -42,7 +42,7 @@ class AckResponse:
         # USER-TOKEN:deadbeebcafe
         # ::
         return (
-                f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
+                f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} /{self.headers["RESOURCE"]}\n'
                 f'TYPE:{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
                 (f'CODE:{self.headers["CODE"]}\n' if self.headers.get("CODE") else '') +
                 (f'USER-TOKEN:{self.headers["USER-TOKEN"]}' if self.headers.get("USER-TOKEN") else '') +
@@ -68,7 +68,7 @@ class BinResponse:
         # ::
         return (
                 f'CYAN {ALLOWED_CYAN_VERSION}\nBIN {self.headers["USER"]} {self.headers["RESOURCE"]}\n'
-                f'TYPE"{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nSENDER:{self.headers["SENDER"]}\n'
+                f'TYPE:{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nSENDER:{self.headers["SENDER"]}\n'
                 f'TIME-SENT:{self.headers["TIME-SENT"]}\nLENGTH:{self.headers["LENGTH"]}\n' +
                 (f'READ-STATUS:{self.headers["READ-STATUS"]}\n' if self.headers.get("READ-STATUS") else '') +
                 (f'CODE:{self.headers["CODE"]}\n' if self.headers.get("CODE") else '') +

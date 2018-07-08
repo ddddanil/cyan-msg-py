@@ -55,6 +55,6 @@ class Connection():
         self.try_send(request)
         # False if connection was lost and Response not completed
         # True if Response is completed
-        if self.try_recieve():
+        if not self.try_recieve():
             raise ConnectionRefusedError
         return self.response
