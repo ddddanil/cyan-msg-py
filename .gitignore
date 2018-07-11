@@ -2,3 +2,7 @@
 __pycache__
 .idea
 .pytest_cache
+*.conf
+!*.conf.example
+.vscode
+*.rdb

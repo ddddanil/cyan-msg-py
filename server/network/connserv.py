@@ -7,11 +7,16 @@ from pickle import dumps, loads
 from pprint import pprint
 
 logger = None
-
+address = {
+    'self': None,
+    'session': None
+}
 
 class ConnectionServer:
 
-    def __init__(self, host='0.0.0.0', port=12345):
+    def __init__(self, host=None, port=None):
+        if host is None or port is None:
+            host, port = address['self']
         self.host = host
         self.port = port
         self.connections = []
@@ -38,7 +43,9 @@ class ConnectionServer:
 
 class CyanSolver:
 
-    def __init__(self, sock, addr):
+    def __init__(self, sock, addr, s_addr=None, s_port=None):
+        if s_addr is None or s_port is None:
+            s_addr, s_port = address['session']
         self.sock = sock
         self.addr = addr
         self.alive = True
@@ -47,7 +54,7 @@ class CyanSolver:
         self.response_queue = asyncio.Queue()
         self.session = None
         self.tasks = []
-        self.session_addr = ('127.0.0.1', 12346)
+        self.session_addr = (s_addr, s_port)
         self.loop = asyncio.get_event_loop()
         self.data = b''
 

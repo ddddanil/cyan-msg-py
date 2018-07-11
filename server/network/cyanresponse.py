@@ -1,6 +1,5 @@
-from cyanrequest import ALLOWED_CYAN_VERSION
 
-ALLOWED_CYAN_VERSION = ALLOWED_CYAN_VERSION.decode('ascii')
+ALLOWED_CYAN_VERSION = None
 
 
 class ErrResponse:
