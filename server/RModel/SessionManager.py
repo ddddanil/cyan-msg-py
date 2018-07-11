@@ -1,4 +1,5 @@
 import asyncio
+import aioredis
 import socket
 import uvloop
 from pickle import loads
@@ -18,6 +19,7 @@ class SessionManager:
         self.host = host
         self.port = port
         self.session_list = {}
+        self.redis = None
         # Create tcp socket for accept
         # typical socket set up commands
         logger.debug((host, port))
@@ -30,6 +32,7 @@ class SessionManager:
         logger.info(f'Start server on {host}:{port}')
 
     async def serv(self):
+        self.redis = await aioredis.create_redis(('localhost', 6379))
         while True:
             logger.debug('serving....')
             sock, addr = await self.loop.sock_accept(self.master_socket)
@@ -44,7 +47,8 @@ class SessionManager:
         logger.debug(param)
         if param['USER'] != 'u000000':
             # session for /login
-            if TOKENS.get(param['USER-TOKEN']) == 0:
+            if await self.redis.get(f'token:{param["USER-TOKEN"]}') == 0:
+                self.redis.delete(f'token:{param["USER-TOKEN"]}')
                 Session.OneTimeSession(sock, addr)
             # 24 hours session
             else:

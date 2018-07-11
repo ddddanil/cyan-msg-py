@@ -2,6 +2,7 @@ import json
 import random
 import SessionManager
 import time
+import aioredis
 
 ALLOWED_TOKEN_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 
@@ -9,7 +10,12 @@ ALLOWED_TOKEN_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ
 class ResourceManager:
 
     def __init__(self):
-        self.db_connection = None
+        self.db = None
+        self.redis = None
+
+    async def init(self):
+        self.redis: aioredis = await aioredis.create_redis(('localhost', 6379))
+        # db = await bla bla
 
     async def process_request(self, request):
         if request['REQ-TYPE'] == 'POST':
@@ -21,7 +27,7 @@ class ResourceManager:
                 print(data)
                 # one time token for GET /login
                 token = self.gen_token()
-                SessionManager.TOKENS[token] = 0
+                await self.redis.set(f'token:{token}', 0)
                 return {
                     'RESP-TYPE': 'ACK',
                     'USER': 'u000001',
@@ -36,7 +42,7 @@ class ResourceManager:
         else:
             token = self.gen_token()
             # 24 hours token
-            SessionManager.TOKENS[token] = 1
+            await self.redis.set(f'token:{token}', 1, 86400)
             token_json = json.dumps({'TOKEN': token}).encode()
             if request['RESOURCE'] == '/login':
                 return {
@@ -53,8 +59,8 @@ class ResourceManager:
             pass
 
     @staticmethod
-    def gen_token():
+    def gen_token(length=64):
         token = ''
-        for i in range(64):
+        for i in range(length):
             token += random.choice(ALLOWED_TOKEN_CHARACTERS)
         return token

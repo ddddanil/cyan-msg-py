@@ -38,6 +38,9 @@ class BaseSession:
         return request
 
     async def process_request(self, request):
+        if not self.resource_manager.redis:
+            await self.resource_manager.init()
+
         logger.debug(f'start process_request {(request["REQ-TYPE"] == "POST")}')
         # TODO Process request
         response = None
