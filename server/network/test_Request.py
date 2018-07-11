@@ -1,4 +1,4 @@
-from .request import Request
+from .cyanrequest import Request
 import pytest
 import sys
 
