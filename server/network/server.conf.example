@@ -1,0 +1,11 @@
+[DEFAULT]
+version = 0.1
+debug = 1
+
+[ConnServer]
+address = 0.0.0.0
+port = 12345
+session_address = 127.0.0.1
+session_port = 12346
+
+[Protocol]
