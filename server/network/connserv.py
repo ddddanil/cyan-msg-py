@@ -1,16 +1,12 @@
 import asyncio
 from async_timeout import timeout
-import uvloop
-from os import environ
 import socket
-from request import Request, ParseError
-from response import *
+from cyanrequest import Request, ParseError
+from cyanresponse import *
 from pickle import dumps, loads
 from pprint import pprint
-import logging
 
-
-logger: logging.Logger = None
+logger = None
 
 
 class ConnectionServer:
@@ -158,35 +154,3 @@ class CyanSolver:
         if self.session:
             self.session.shutdown(socket.SHUT_RDWR)
             self.session.close()
-
-
-def setup_logger():  # TODO external init through file
-    global logger
-
-    simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
-    wide_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
-    debuglog = logging.StreamHandler()
-    debuglog.setLevel(logging.DEBUG)
-    debuglog.setFormatter(simple_formatter)
-
-    master_logger = logging.getLogger('network')
-    master_logger.setLevel(logging.DEBUG)
-
-    master_logger.addHandler(debuglog)
-
-    logger = master_logger
-
-
-if __name__ == '__main__':
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    loop = asyncio.get_event_loop()
-    environ['PYTHONASYNCIODEBUG'] = '1'
-    setup_logger()
-
-    server = ConnectionServer()
-    asyncio.ensure_future(server.serv())
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        loop.stop()
-    loop.close()
