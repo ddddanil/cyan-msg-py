@@ -7,7 +7,7 @@ import uvloop
 from os import environ
 import asyncio
 
-DEBUG = False
+DEBUG = True
 
 def setup_logger():  # TODO external init through file
     simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')

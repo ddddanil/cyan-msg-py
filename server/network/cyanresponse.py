@@ -4,9 +4,9 @@ ALLOWED_CYAN_VERSION = None
 
 class ErrResponse:
 
-    def __init__(self, code, desc):
-        self.code = code
-        self.desc = desc
+    def __init__(self, headers):
+        self.code = headers['CODE']
+        self.desc = headers['TEXT']
 
     def __bytes__(self):
         """
@@ -40,12 +40,15 @@ class AckResponse:
         # CODE:200
         # USER-TOKEN:deadbeebcafe
         # ::
+
         return (
-                f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} /{self.headers["RESOURCE"]}\n'
-                f'TYPE:{self.headers["TYPE"]}\nCHECKSUM:{self.headers["CHECKSUM"]}\nLENGTH:{self.headers["LENGTH"]}\n'
-                f'TIME-SENT:{self.headers["TIME-SENT"]}' +
+                f'CYAN {ALLOWED_CYAN_VERSION}\nACK {self.headers["USER"]} /{self.headers["RESOURCE"]}\n' +
+                (f'TYPE:{self.headers["TYPE"]}\n' if self.headers.get('TYPE') else '') +
+                (f'CHECKSUM:{self.headers["CHECKSUM"]}\n' if self.headers.get('CHECKSUM') else '') +
+                (f'LENGTH:{self.headers["LENGTH"]}\n' if self.headers.get('LENGTH') else '') +
+                (f'TIME-SENT:{self.headers["TIME-SENT"]}\n' if self.headers.get('TIME-SENT') else '') +
                 (f'CODE:{self.headers["CODE"]}\n' if self.headers.get("CODE") else '') +
-                (f'USER-TOKEN:{self.headers["USER-TOKEN"]}' if self.headers.get("USER-TOKEN") else '') +
+                (f'USER-TOKEN:{self.headers["USER-TOKEN"]}\n' if self.headers.get("USER-TOKEN") else '') +
                 '::\n'
         ).encode()
 

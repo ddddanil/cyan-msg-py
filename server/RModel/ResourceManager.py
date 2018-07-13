@@ -13,50 +13,57 @@ class ResourceManager:
         self.db = None
         self.redis = None
 
-    async def init(self):
+    async def redis_connect(self):
         self.redis: aioredis = await aioredis.create_redis(('localhost', 6379))
         # db = await bla bla
 
-    async def process_request(self, request):
-        if request['REQ-TYPE'] == 'POST':
-            if request['TARGET'][0] == 'g':
+    async def check(self, req_type, user, res) -> tuple:
+        """
+        :return demands for this request
+        :param req_type:
+        :param user:
+        :param res:
+        :return:
+        """
+        if req_type == 'POST':
+            if res == '/login':
+                return (
+                    'USER', 'BIN',
+                )
+
+        elif req_type == 'GET':
+            if res == '/login':
+                return (
+                    'USER-TOKEN',
+                )
+
+    async def solve(self, headers):
+        if not self.redis:
+            await self.redis_connect()
+        if headers['REQ-TYPE'] == 'POST':
+            if headers['RESOURCE'][0] == 'g':
                 pass # TODO check that user in group
-            elif request['TARGET'] == '/login':
+
+            elif headers['RESOURCE'] == '/login':
                 # TODO check login and password, get id of this user
-                data = json.loads(request['BIN'].decode())
-                print(data)
+                data = json.loads(headers['BIN'].decode())
                 # one time token for GET /login
                 token = self.gen_token()
                 await self.redis.set(f'token:{token}', 0)
                 return {
-                    'RESP-TYPE': 'ACK',
                     'USER': 'u000001',
-                    'RESOURCE': '/user/u000001',
                     'USER-TOKEN': token,
-                    'TIME-SENT': 880880654,
-                    'TYPE': request['TYPE'],
-                    'CHECKSUM': request['CHECKSUM'],
-                    'LENGTH': request['LENGTH'],
-                    'CODE': 200
                 }
         else:
-            token = self.gen_token()
-            # 24 hours token
-            await self.redis.set(f'token:{token}', 1, 86400)
-            token_json = json.dumps({'TOKEN': token}).encode()
-            if request['RESOURCE'] == '/login':
+            if headers['RESOURCE'] == '/login':
+                token = self.gen_token()
+                # 24 hours token
+                print(token)
+                await self.redis.set(f'token:{token}', 1, expire=86400)
+                token_json = json.dumps({'TOKEN': token}).encode()
                 return {
-                    'RESP-TYPE': 'BIN',
-                    'USER': request['USER'],
-                    'RESOURCE': '/login',
-                    'TIME-SENT': int(time.time()),
-                    'TYPE': 'text',
-                    'CHECKSUM': 'Corgi',
-                    'SENDER': 'u000000',
-                    'LENGTH': len(token_json),
                     'BIN': token_json
                 }
-            pass
 
     @staticmethod
     def gen_token(length=64):
