@@ -2,10 +2,10 @@ from pickle import dumps
 from hashlib import sha1
 from pprint import pprint
 import re
-
+from .config import version_b
 
 ALLOWED_CHARACTERS = b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-/'
-ALLOWED_CYAN_VERSION = None
+ALLOWED_CYAN_VERSION = version_b
 
 REQUIRED_GET_HEADERS = ('CYAN', 'REQ-TYPE', 'USER', 'RESOURCE', 'USER-TOKEN')
 ACCEPTABLE_GET_HEADER = ('ACCEPT-TYPE', 'LAST-UPDATE')

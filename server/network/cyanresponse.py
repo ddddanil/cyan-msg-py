@@ -1,5 +1,6 @@
+from .config import version_s
 
-ALLOWED_CYAN_VERSION = None
+ALLOWED_CYAN_VERSION = version_s
 
 
 class ErrResponse:

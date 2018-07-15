@@ -1,6 +1,5 @@
 import json
 import random
-import SessionManager
 import time
 import aioredis
 
@@ -61,6 +60,6 @@ class ResourceManager:
     @staticmethod
     def gen_token(length=64):
         token = ''
-        for i in range(length):
+        for _ in range(length):
             token += random.choice(ALLOWED_TOKEN_CHARACTERS)
         return token

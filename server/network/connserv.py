@@ -1,22 +1,20 @@
 import asyncio
 from async_timeout import timeout
 import socket
-from cyanrequest import Request, ParseError
-from cyanresponse import *
 from pickle import dumps, loads
 from pprint import pprint
+from logging import getLogger
+from .cyanrequest import Request, ParseError
+from .cyanresponse import ErrResponse, AckResponse, BinResponse
+from .config import server_address, session_address
 
-logger = None
-address = {
-    'self': None,
-    'session': None
-}
+logger = getLogger('network')
 
 class ConnectionServer:
 
     def __init__(self, host=None, port=None):
         if host is None or port is None:
-            host, port = address['self']
+            host, port = server_address
         self.host = host
         self.port = port
         self.connections = []
@@ -45,7 +43,7 @@ class CyanSolver:
 
     def __init__(self, sock, addr, s_addr=None, s_port=None):
         if s_addr is None or s_port is None:
-            s_addr, s_port = address['session']
+            s_addr, s_port = session_address
         self.sock = sock
         self.addr = addr
         self.alive = True

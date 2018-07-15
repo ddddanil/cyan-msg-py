@@ -4,11 +4,11 @@ import socket
 import uvloop
 from pickle import loads, dumps
 from functools import wraps, partial
-from ResourceManager import ResourceManager
+from logging import getLogger
+from .ResourceManager import ResourceManager
+from .config import session_timeout
 
-# 24 hours
-TIMEOUT_SECONDS = 86400
-logger = None
+logger = getLogger('CYAN-msg.Session')
 
 
 class BaseSession:
@@ -165,7 +165,7 @@ class TokenSession(BaseSession):
     async def die(self):
         logger.debug(f'die ({self.token}) start')
         # sleep 24 hours
-        await asyncio.sleep(TIMEOUT_SECONDS)
+        await asyncio.sleep(session_timeout)
         await self.process_request_lock.acquire()
         logger.info(f'This session({self.token}) is going to die')
         while not self.requests_queue.empty():
