@@ -3,7 +3,7 @@ import re
 
 def register(req_t, path_s, require):
         path = Resources.path_re(path_s)
-        if not path or not req_t in ['POST', 'GET']:
+        if not path or not req_t in ('POST', 'GET'):
             raise ValueError
         
         def deco(func):
@@ -36,7 +36,7 @@ class ResourcesClass():
             raise ValueError
         req_t = key[0]
         path = self.path_re.match(key[1])
-        if not path or not req_t in ['POST', 'GET']:
+        if not path or not req_t in ('POST', 'GET'):
             raise KeyError
         
         func, require = self.resources_func[(req_t, path.group(1))]
@@ -45,4 +45,4 @@ class ResourcesClass():
 
         return (func, require)
 
-Resources = ResourcesClass
+Resources = ResourcesClass()
