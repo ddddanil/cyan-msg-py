@@ -1,8 +1,11 @@
 import asyncio
 import os
 import socket
+import time
+
 import uvloop
 from pickle import loads, dumps
+from  json import JSONDecodeError
 from functools import wraps, partial
 from logging import getLogger
 from .ResourceManager import ResourceManager
@@ -38,45 +41,61 @@ class BaseSession:
         return request
 
     async def process_request(self, request):
-        if not self.resource_manager.redis:
-            await self.resource_manager.init()
+        response = {}
+        try:
+            if request['REQ-TYPE'] == 'POST':
+                request['RESOURCE'] = request['TARGET']
+            req_type = request['REQ-TYPE']
+            user = request['USER']
+            res = request['RESOURCE']
+            demands = await self.resource_manager.check(req_type, user, res)
+            headers = {
+                'REQ-TYPE': request['REQ-TYPE'],
+                'USER': request['USER'],
+                'RESOURCE': request['RESOURCE']
+            }
 
-        logger.debug(f'start process_request {(request["REQ-TYPE"] == "POST")}')
-        # TODO Process request
-        response = None
-        if request['REQ-TYPE'] == 'POST':
-            if request['TARGET'] == '/login':
-                response = await self.resource_manager.process_request(request)
+            for demand in demands:
+                headers[demand] = request[demand]
+
+            response = await self.resource_manager.solve(headers)
+        except KeyError as err: # create better Exceptions
+            logger.debug(err)
+            response = {
+                'RESP-TYPE': 'ERR',
+                'CODE': 400,
+                'TEXT': 'ERR IN SESSION(KeyError)'
+            }
+        except JSONDecodeError as err:
+            logger.debug(err)
+            response = {
+                'RESP-TYPE': 'ERR',
+                'CODE': 400,
+                'TEXT': 'ERR IN SESSION(JSONDecodeError)'
+            }
+        except TypeError as err:
+            logger.debug(err)
+            response = {
+                'RESP-TYPE': 'ERR',
+                'CODE': 400,
+                'TEXT': 'ERR IN SESSION(TypeErrror)'
+            }
+        else:
+            response['RESOURCE'] = request['RESOURCE']
+            if request['REQ-TYPE'] == 'GET':
+                response['RESP-TYPE'] = 'BIN'
+                response['USER'] = request['USER']
+                response['TYPE'] = request['ACCEPT-TYPE']
+                response['CHECKSUM'] = 'VERY-COOL-CHECKSUM'
+                response['SENDER'] = 'u000000'
+                response['TIME-SENT'] = int(time.time())
+                response['LENGTH'] = len(response['BIN'])
+            # POST
             else:
-                response = {
-                    'RESP-TYPE': 'ACK',
-                    'USER': request['USER'],
-                    'RESOURCE': 'ID_OF_RESOURCE',
-                    'TYPE': request['TYPE'],
-                    'CHECKSUM': request['CHECKSUM'],
-                    'LENGTH': request['LENGTH'],
-                    'CODE': 200
-                }
-            logger.debug(f'===================================\n{response}')
-        elif request['REQ-TYPE'] == 'GET':
-            if request['RESOURCE'] == '/login':
-                response = await self.resource_manager.process_request(request)
-            else:
-                response = {
-                    'RESP-TYPE': 'BIN',
-                    'USER': request['USER'],
-                    'RESOURCE': request['RESOURCE'],
-                    'TYPE': 'text',
-                    'CHECKSUM': 'IloveCats',
-                    'LENGTH': 19,
-                    'CODE': 200,
-                    'SENDER': 'u000000',
-                    'TIME-SENT': 88008800,
-                    'BIN': b'You did a great job'
-                }
-        if not response:
-            raise ValueError
-        logger.debug(f"Processed\n{request}\nto\n{response}")
+                response['RESP-TYPE'] = 'ACK'
+                if 'USER' not in response:
+                    response['USER'] = request['USER']
+
         await self.respond(request['ORIGIN'], response)
 
     async def respond(self, origin, headers):
@@ -115,6 +134,7 @@ class OneTimeSession(BaseSession):
         await self.process_request(request)
         self.sock.close()
         logger.info('one time session died')
+
 
 #############################################
 

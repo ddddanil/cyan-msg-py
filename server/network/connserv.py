@@ -80,7 +80,7 @@ class CyanSolver:
                 self.data = self.request.add(data)
             except ParseError as err:
                 logger.debug(err)
-                await self.response_queue.put(ErrResponse(code=err.code, desc=err.desc))
+                await self.response_queue.put(ErrResponse({'CODE':err.code, 'TEXT':err.desc}))
                 logger.debug('err put')
                 self.request = Request()
                 

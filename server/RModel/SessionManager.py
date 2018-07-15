@@ -18,9 +18,8 @@ class SessionManager:
     def __init__(self, host=None, port = None):
         if host is None or port is None:
             host, port = server_address
-        else:
-            self.host = host
-            self.port = port
+        self.host = host
+        self.port = port
         self.session_list = {}
         self.redis = None
         # Create tcp socket for accept
@@ -50,17 +49,21 @@ class SessionManager:
         logger.debug(param)
         if param['USER'] != 'u000000':
             # session for /login
-            if await self.redis.get(f'token:{param["USER-TOKEN"]}') == 0:
+            redis_ans = await self.redis.get(f'token:{param["USER-TOKEN"]}')
+            if redis_ans == b'0':
                 self.redis.delete(f'token:{param["USER-TOKEN"]}')
                 Session.OneTimeSession(sock, addr)
             # 24 hours session
-            else:
+            elif redis_ans == b'1':
                 # session exist
                 if self.session_list.get(param['USER-TOKEN']):
                     await self.session_list[param['USER-TOKEN']].receive_connection(sock, addr)
                 # new session
                 else:
                     self.session_list[param['USER-TOKEN']] = Session.TokenSession(sock, addr, param['USER-TOKEN'])
+            else:
+                logger.debug('invalid token')
+                sock.close()
         else:
             Session.OneTimeSession(sock, addr)
             logger.debug(f'create OneTimeSession for u000000 {addr}')
