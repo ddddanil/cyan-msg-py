@@ -1,6 +1,6 @@
 import json
 import random
-from resources import register
+from RModel.resources.resources import register
 
 @register('POST', '/login', ('USER', 'BIN'))
 async def login_post(redis, **headers):

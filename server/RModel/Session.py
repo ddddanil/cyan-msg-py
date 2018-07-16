@@ -60,28 +60,28 @@ class BaseSession:
 
             response = await self.resource_manager.process(**headers)
         except WrongMethodError as err:
-            logger.debug(err)
+            logger.info(err)
             response = {
                 'RESP-TYPE': 'ERR',
-                'CODE': err.code
+                'CODE': err.code,
                 'TEXT': err.message
             }
         except KeyError as err: # create better Exceptions
-            logger.debug(err)
+            logger.exception(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,
                 'TEXT': 'ERR IN SESSION(KeyError)'
             }
         except JSONDecodeError as err:
-            logger.debug(err)
+            logger.info(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,
                 'TEXT': 'ERR IN SESSION(JSONDecodeError)'
             }
         except TypeError as err:
-            logger.debug(err)
+            logger.exception(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,

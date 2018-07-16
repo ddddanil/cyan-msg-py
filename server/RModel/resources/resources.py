@@ -1,5 +1,9 @@
 from functools import partial, wraps
+from logging import getLogger
 import re
+import RModel.resources.login
+
+logger = getLogger("RModel.Resources")
 
 def register(req_t, path_s, require):
         Resources = ResourcesClass()
@@ -15,6 +19,8 @@ def register(req_t, path_s, require):
             Resources.resources_func[(req_t, path.group(1))] = (new_func, require)
             return new_func
         
+        logger.debug(f"Added path {path_s} now Resources are {Resources.resources_func}")
+
         return deco
 
 class WrongMethodError(ValueError):
@@ -45,8 +51,10 @@ class ResourcesClass(metaclass=Singleton):
             raise ValueError
         req_t = key[0]
         path = self.path_re.match(key[1])
-        if not path or not req_t in ('POST', 'GET'):
-            raise KeyError
+        if not path:
+            raise KeyError("Malformed resource")
+        if not req_t in ('POST', 'GET'):
+            raise WrongMethodError
         
         func, require = self.resources_func[(req_t, path.group(1))]
         if path.group(2):

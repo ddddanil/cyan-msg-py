@@ -1,6 +1,7 @@
 import aioredis
 from .config import redis_address
 from .resources.resources import ResourcesClass, WrongMethodError
+from .resources import *
 from logging import getLogger
 
 logger = getLogger("RModel.ResourceManager")
@@ -29,4 +30,4 @@ class ResourceManager:
     async def process(self, *args, **kwargs):
         if self.resource is None:
             raise AttributeError
-        await self.resource[0](*args, **kwargs)
+        await self.resource[0](self.redis, *args, **kwargs)

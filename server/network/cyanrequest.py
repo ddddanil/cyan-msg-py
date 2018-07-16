@@ -69,7 +69,9 @@ class Request:
             lines.pop()
         if not lines:
             raise ParseError('BAD FIRST LINE')
-        # check characters
+        # Ignore whitespace
+        lines = [line.strip() for line in lines]
+        # Check characters
         for num, line in enumerate(lines):
             if (1 < num < len(lines) - 1) and line.count(b':') != 1:
                 raise ParseError(f'MORE THAN ONE ":" IN {(num + 1)} LINE')
