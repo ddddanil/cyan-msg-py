@@ -1,29 +1,32 @@
-import json
-import random
-import time
 import aioredis
 from .config import redis_address
-from .resources.resources import Resources
+from .resources.resources import ResourcesClass, WrongMethodError
+from logging import getLogger
 
-ALLOWED_TOKEN_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-
+logger = getLogger("RModel.ResourceManager")
 
 class ResourceManager:
 
     def __init__(self):
         self.db = None
         self.redis = None
+        self.resource = None
+        self.resources = ResourcesClass()
 
     async def redis_connect(self):
         self.redis: aioredis = await aioredis.create_redis(redis_address)
         # db = await bla bla
                
-    def new_request(self, resource):
-        self.process, self.require = Resources[(request_type, resource)]
+    def new_request(self, request_type, resource):
+        self.resource = self.resources[(request_type, resource)]
+        logger.debug(f"Resource {request_type} {resource} resolved to {self.resource}")
 
-    @staticmethod
-    def gen_token(length=64):
-        token = ''
-        for _ in range(length):
-            token += random.choice(ALLOWED_TOKEN_CHARACTERS)
-        return token
+    def require(self):
+        if self.resource is None:
+            raise AttributeError
+        return self.resource[1]
+
+    async def process(self, *args, **kwargs):
+        if self.resource is None:
+            raise AttributeError
+        await self.resource[0](*args, **kwargs)

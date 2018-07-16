@@ -8,7 +8,7 @@ from pickle import loads, dumps
 from  json import JSONDecodeError
 from functools import wraps, partial
 from logging import getLogger
-from .ResourceManager import ResourceManager
+from .ResourceManager import ResourceManager, WrongMethodError
 from .config import session_timeout
 
 logger = getLogger('CYAN-msg.Session')
@@ -46,9 +46,9 @@ class BaseSession:
             if request['REQ-TYPE'] == 'POST':
                 request['RESOURCE'] = request['TARGET']
             req_type = request['REQ-TYPE']
-            user = request['USER']
             res = request['RESOURCE']
-            demands = await self.resource_manager.check(req_type, user, res)
+            self.resource_manager.new_request(req_type, res)
+            demands = self.resource_manager.require()
             headers = {
                 'REQ-TYPE': request['REQ-TYPE'],
                 'USER': request['USER'],
@@ -58,7 +58,14 @@ class BaseSession:
             for demand in demands:
                 headers[demand] = request[demand]
 
-            response = await self.resource_manager.solve(headers)
+            response = await self.resource_manager.process(**headers)
+        except WrongMethodError as err:
+            logger.debug(err)
+            response = {
+                'RESP-TYPE': 'ERR',
+                'CODE': err.code
+                'TEXT': err.message
+            }
         except KeyError as err: # create better Exceptions
             logger.debug(err)
             response = {
