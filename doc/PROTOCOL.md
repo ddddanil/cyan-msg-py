@@ -129,12 +129,11 @@ binary file starts here
    - TRUE
 - Has body
    - FALSE
-- Required headers
+- Acceptable headers
    - `TYPE`
    - `CHECKSUM`
    - `TIME-SENT`
    - `LENGTH`
-- Acceptable headers
    - `CODE`
    - `USER-TOKEN`
 

@@ -7,11 +7,11 @@ import uvloop
 from pickle import loads, dumps
 from  json import JSONDecodeError
 from functools import wraps, partial
-from logging import getLogger
-from .ResourceManager import ResourceManager, WrongMethodError
-from .config import session_timeout
+from ResourceManager import ResourceManager
 
-logger = getLogger('CYAN-msg.Session')
+# 24 hours
+TIMEOUT_SECONDS = 86400
+logger = None
 
 
 class BaseSession:
@@ -46,9 +46,9 @@ class BaseSession:
             if request['REQ-TYPE'] == 'POST':
                 request['RESOURCE'] = request['TARGET']
             req_type = request['REQ-TYPE']
+            user = request['USER']
             res = request['RESOURCE']
-            self.resource_manager.new_request(req_type, res)
-            demands = self.resource_manager.require()
+            demands = await self.resource_manager.check(req_type, user, res)
             headers = {
                 'REQ-TYPE': request['REQ-TYPE'],
                 'USER': request['USER'],
@@ -58,30 +58,23 @@ class BaseSession:
             for demand in demands:
                 headers[demand] = request[demand]
 
-            response = await self.resource_manager.process(**headers)
-        except WrongMethodError as err:
-            logger.info(err)
-            response = {
-                'RESP-TYPE': 'ERR',
-                'CODE': err.code,
-                'TEXT': err.message
-            }
+            response = await self.resource_manager.solve(headers)
         except KeyError as err: # create better Exceptions
-            logger.exception(err)
+            logger.debug(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,
                 'TEXT': 'ERR IN SESSION(KeyError)'
             }
         except JSONDecodeError as err:
-            logger.info(err)
+            logger.debug(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,
                 'TEXT': 'ERR IN SESSION(JSONDecodeError)'
             }
         except TypeError as err:
-            logger.exception(err)
+            logger.debug(err)
             response = {
                 'RESP-TYPE': 'ERR',
                 'CODE': 400,
@@ -192,7 +185,7 @@ class TokenSession(BaseSession):
     async def die(self):
         logger.debug(f'die ({self.token}) start')
         # sleep 24 hours
-        await asyncio.sleep(session_timeout)
+        await asyncio.sleep(TIMEOUT_SECONDS)
         await self.process_request_lock.acquire()
         logger.info(f'This session({self.token}) is going to die')
         while not self.requests_queue.empty():
