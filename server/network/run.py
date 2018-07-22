@@ -9,6 +9,7 @@ import asyncio
 
 DEBUG = True
 
+
 def setup_logger():  # TODO external init through file
     simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
     wide_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
@@ -22,6 +23,7 @@ def setup_logger():  # TODO external init through file
     master_logger.addHandler(debuglog)
 
     connserv.logger = master_logger
+
 
 def setup_config():
     global DEBUG
@@ -41,6 +43,7 @@ def setup_config():
     cyanrequest.ALLOWED_CYAN_VERSION = config["Protocol"]['version'].encode('ascii')
     cyanresponse.ALLOWED_CYAN_VERSION = config["Protocol"]['version']
 
+
 def run():
     setup_logger()
     setup_config()
@@ -56,6 +59,7 @@ def run():
     except KeyboardInterrupt:
         loop.stop()
     loop.close()
+
 
 if __name__ == '__main__':
     run()

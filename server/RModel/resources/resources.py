@@ -188,14 +188,3 @@ class ResourcesClass(metaclass=Singleton):
         except WrongMethodError:
             pass
         return func, require
-
-
-@register('GET', '/a/<id: \d+>/a', ('USER-TOKEN', ))
-def a(req, id):
-    print(req, id)
-
-
-if __name__ == '__main__':
-    r = ResourcesClass()
-    x, y = r[('GET', '/a/56/a')]
-

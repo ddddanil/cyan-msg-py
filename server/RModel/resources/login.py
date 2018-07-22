@@ -1,6 +1,6 @@
 import json
 import random
-from RModel.resources.resources import register
+from server.RModel.ResourceManager import register
 
 
 @register('POST', '/login', ('USER', 'BIN'))
