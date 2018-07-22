@@ -2,6 +2,7 @@ import json
 import random
 from RModel.resources.resources import register
 
+
 @register('POST', '/login', ('USER', 'BIN'))
 async def login_post(redis, **headers):
     # TODO check login and password, get id of this user
@@ -14,6 +15,7 @@ async def login_post(redis, **headers):
         'USER-TOKEN': token,
     }
 
+
 @register('GET', '/login', ('USER-TOKEN', ))
 async def login_get(redis, **headers):
     token = gen_token()
@@ -25,7 +27,7 @@ async def login_get(redis, **headers):
         'BIN': token_json
     }
 
-@staticmethod
+
 def gen_token(length=64):
     ALLOWED_TOKEN_CHARACTERS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     token = ''
