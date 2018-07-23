@@ -1,4 +1,4 @@
-import network
+import run
 
 if __name__ == "__main__":
-    network.run()
+    run.run()

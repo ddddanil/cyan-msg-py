@@ -1,4 +1,4 @@
-from .config import version_s
+from config import version_s
 
 ALLOWED_CYAN_VERSION = version_s
 

@@ -4,11 +4,13 @@ import socket
 from pickle import dumps, loads
 from pprint import pprint
 from logging import getLogger
-from .cyanrequest import Request, ParseError
-from .cyanresponse import ErrResponse, AckResponse, BinResponse
-from .config import server_address, session_address
+from cyanrequest import Request, ParseError
+from cyanresponse import ErrResponse, AckResponse, BinResponse
+from config import server_address, session_address
+
 
 logger = getLogger('network')
+
 
 class ConnectionServer:
 

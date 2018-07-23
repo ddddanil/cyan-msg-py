@@ -1,8 +1,7 @@
-from logging import getLogger
+import resources
 import functools
-from functools import partial
-from logging import getLogger
 import re
+from logging import getLogger
 
 logger = getLogger("RModel.Resources")
 
@@ -55,7 +54,7 @@ class _Trie:
 
             elif cnt > 1:
                 raise ValueError('more than one way accept this path')
-        print(node)
+        logger.info(f'add {path}')
 
     def get(self, req_t: str, path: list):
         if req_t == 'GET':
