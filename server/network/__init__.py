@@ -4,7 +4,7 @@ This module handles all incoming requests, parses them and then passes them to a
 '''
 
 __all__ = ["cyanrequest", "cyanresponse"]
-__author__ = "Danil Doroshin and Nikolay Rulov"
+__author__ = "Danil Doroshin and Nikolay Rulev"
 __credits__ = ["Danil Doroshin", "Nikolay Rulev"]
 __version__ = '0.1'
 

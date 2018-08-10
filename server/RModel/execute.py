@@ -1,7 +1,7 @@
 import asyncio
 import uvloop
 import logging
-from .SessionManager import SessionManager
+from SessionManager import SessionManager
 
 
 def setup_logger(): # TODO external init through file
