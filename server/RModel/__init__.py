@@ -8,4 +8,4 @@ __author__ = "Danil Doroshin and Nikolay Rulov"
 __credits__ = ["Danil Doroshin", "Nikolay Rulev"]
 __version__ = '0.1'
 
-from RModel.execute import run, setup_logger
+from RModel.execute import run
