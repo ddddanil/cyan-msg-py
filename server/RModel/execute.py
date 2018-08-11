@@ -1,6 +1,6 @@
 import asyncio
 import uvloop
-import logger_settup
+import logger_setup
 from SessionManager import SessionManager
 
 
