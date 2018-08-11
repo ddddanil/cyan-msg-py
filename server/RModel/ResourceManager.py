@@ -1,7 +1,7 @@
-import resources
 import functools
 import re
 from logging import getLogger
+import RModel.resources
 
 logger = getLogger("RModel.Resources")
 

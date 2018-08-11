@@ -5,8 +5,8 @@ import uvloop
 from pickle import loads
 from json import JSONDecodeError
 import logging, logging.handlers
-import Session
-
+from RModel import Session
+from RModel.config import redis_address
 # 0 one time token
 # 1 24 hours token
 TOKENS = {}
@@ -35,7 +35,7 @@ class SessionManager:
         print(f'Start server on {host}:{port}')
 
     async def serv(self):
-        self.redis = await aioredis.create_redis(('localhost', 6379))
+        self.redis = await aioredis.create_redis(redis_address)
         while True:
             logger.debug('serving....')
             sock, addr = await self.loop.sock_accept(self.master_socket)

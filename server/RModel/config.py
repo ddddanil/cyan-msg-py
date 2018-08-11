@@ -4,7 +4,7 @@ config = ConfigParser()
 config.read("server.conf")
 
 # Variables accessible from other modules
-session_timeout = config["SessionManager"].getint("session_timeout", 86400) # 24 hours
+session_timeout = 86400 # 24 hours
 
 server_address = (
     config["SessionManager"].get("address", '0.0.0.0'),

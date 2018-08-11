@@ -1,7 +1,7 @@
-'''RModel module for CYAN-msg Python server
+"""RModel module for CYAN-msg Python server
 
 This module provides Resource Model interface.
-'''
+"""
 
 __all__ = ["SessionManager", "Session", "ResourceManager"]
 __author__ = "Danil Doroshin and Nikolay Rulov"

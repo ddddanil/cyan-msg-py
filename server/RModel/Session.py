@@ -1,17 +1,16 @@
 import asyncio
+import logging
 import os
 import socket
 import time
-
+import aioredis
 import uvloop
 from pickle import loads, dumps
-from  json import JSONDecodeError
-from functools import wraps, partial
-from ResourceManager import ResourceManager
-
+from RModel.ResourceManager import ResourceManager
+from RModel.config import redis_address
 # 24 hours
 TIMEOUT_SECONDS = 86400
-logger = None
+logger = logging.getLogger('RModel.Session')
 
 
 class BaseSession:
@@ -19,6 +18,8 @@ class BaseSession:
     def __init__(self):
         self.loop = asyncio.get_event_loop()
         self.resource_manager = ResourceManager()
+        self.redis = None
+        self.db = None
 
     async def recv_request(self, sock, addr):
         raw_request = b''
@@ -33,70 +34,58 @@ class BaseSession:
         while len(raw_request) < size:
             needed_size = min(size - len(raw_request), 1024)
             raw_request += await self.loop.sock_recv(sock, needed_size)
-        request = loads(raw_request)
+        request: dict = loads(raw_request)
         request['ORIGIN'] = (sock, addr)
-
+        if request.get('TARGET'):
+            request['RESOURCE'] = request['TARGET']
         logger.info(f"New request from {addr}")
-        # logger.debug(f"{request}")
+        logger.debug(f"{request}")
         return request
 
     async def process_request(self, request):
-        response = {}
+        func, require = self.resource_manager[(request['REQ-TYPE'], request['RESOURCE'])]
         try:
-            if request['REQ-TYPE'] == 'POST':
-                request['RESOURCE'] = request['TARGET']
-            req_type = request['REQ-TYPE']
-            user = request['USER']
-            res = request['RESOURCE']
-            demands = await self.resource_manager.check(req_type, user, res)
-            headers = {
-                'REQ-TYPE': request['REQ-TYPE'],
+            headers = {}
+            for key in require:
+                if key in ('DB', 'REDIS'):
+                    continue
+                headers[key] = request[key]
+        except KeyError:
+            await self.respond(request['ORIGIN'], {'RESP-TYPE': 'ERR', 'CODE': 400, 'TEXT': 'NOT ALL HEADERS'})
+            return
+
+        if 'REDIS' in require and not self.redis:
+            self.redis = await aioredis.create_redis(redis_address)
+        if 'DB' in require and not self.db:
+            pass
+            # TODO DataServer
+            # self.db = await self.loop.sock_connect()
+        result = await func(headers, redis=self.redis, db=self.db)
+        logger.debug(result)
+        if request['REQ-TYPE'] == 'POST':
+            result.update({
+                'RESP-TYPE': 'ACK',
+                'RESOURCE': request['RESOURCE'],
+            })
+
+        elif request['REQ-TYPE'] == 'GET':
+            result.update({
+                'RESP-TYPE': 'BIN',
                 'USER': request['USER'],
-                'RESOURCE': request['RESOURCE']
-            }
-
-            for demand in demands:
-                headers[demand] = request[demand]
-
-            response = await self.resource_manager.solve(headers)
-        except KeyError as err: # create better Exceptions
-            logger.debug(err)
-            response = {
-                'RESP-TYPE': 'ERR',
-                'CODE': 400,
-                'TEXT': 'ERR IN SESSION(KeyError)'
-            }
-        except JSONDecodeError as err:
-            logger.debug(err)
-            response = {
-                'RESP-TYPE': 'ERR',
-                'CODE': 400,
-                'TEXT': 'ERR IN SESSION(JSONDecodeError)'
-            }
-        except TypeError as err:
-            logger.debug(err)
-            response = {
-                'RESP-TYPE': 'ERR',
-                'CODE': 400,
-                'TEXT': 'ERR IN SESSION(TypeErrror)'
-            }
+                'TYPE': request['ACCEPT-TYPE'],
+                'RESOURCE': request['RESOURCE'],
+                'CHECKSUM': 'CorgiOneLove',
+                'SENDER': result.get('SENDER', request['USER']),
+                'TIME-SENT': int(time.time()),
+                'LENGTH': len(result['BIN'])
+            })
         else:
-            response['RESOURCE'] = request['RESOURCE']
-            if request['REQ-TYPE'] == 'GET':
-                response['RESP-TYPE'] = 'BIN'
-                response['USER'] = request['USER']
-                response['TYPE'] = request['ACCEPT-TYPE']
-                response['CHECKSUM'] = 'VERY-COOL-CHECKSUM'
-                response['SENDER'] = 'u000000'
-                response['TIME-SENT'] = int(time.time())
-                response['LENGTH'] = len(response['BIN'])
-            # POST
-            else:
-                response['RESP-TYPE'] = 'ACK'
-                if 'USER' not in response:
-                    response['USER'] = request['USER']
-
-        await self.respond(request['ORIGIN'], response)
+            result = {
+                'RESP-TYPE': 'ERR',
+                'CODE': 405,
+                'TEXT': 'METHOD NOT ALLOWED'
+            }
+        await self.respond(request['ORIGIN'], result)
 
     async def respond(self, origin, headers):
         if not headers['RESP-TYPE']:

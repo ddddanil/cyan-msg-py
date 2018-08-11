@@ -1,7 +1,8 @@
 import asyncio
 import uvloop
-import logger_setup
-from SessionManager import SessionManager
+import RModel.logger_setup
+import RModel.resources
+from RModel.SessionManager import SessionManager
 
 
 def run():
