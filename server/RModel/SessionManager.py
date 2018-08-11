@@ -17,6 +17,8 @@ logger = None
 class SessionManager:
 
     def __init__(self, host='0.0.0.0', port=12346):
+        global logger
+        logger = logging.getLogger('RModel.SessionManager')
         self.host = host
         self.port = port
         self.session_list = {}
@@ -30,7 +32,7 @@ class SessionManager:
         self.master_socket.bind((host, port))
         self.master_socket.listen(socket.SOMAXCONN)
         self.loop = asyncio.get_event_loop()
-        logger.info(f'Start server on {host}:{port}')
+        print(f'Start server on {host}:{port}')
 
     async def serv(self):
         self.redis = await aioredis.create_redis(('localhost', 6379))
@@ -66,36 +68,3 @@ class SessionManager:
         else:
             Session.OneTimeSession(sock, addr)
             logger.debug(f'create OneTimeSession for u000000 {addr}')
-
-
-def setup_logger(): # TODO external init through file
-    global logger
-    
-    simple_formatter = logging.Formatter('%(levelname)-8s %(name)-24s: %(message)s')
-    wide_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s\n\t-= %(message)s =-')
-    debuglog = logging.StreamHandler()
-    debuglog.setLevel(logging.DEBUG)
-    debuglog.setFormatter(simple_formatter)
-
-    master_logger = logging.getLogger('CYAN-msg')
-    master_logger.setLevel(logging.DEBUG)
-    
-    master_logger.addHandler(debuglog)
-
-    logger = logging.getLogger('CYAN-msg.SessionManager')
-    Session.logger = logging.getLogger('CYAN-msg.Session')
-
-
-if __name__ == '__main__':
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    loop = asyncio.get_event_loop()
-
-    setup_logger()
-
-    server = SessionManager()
-    asyncio.ensure_future(server.serv())
-    try:
-        loop.run_forever()
-    except KeyboardInterrupt:
-        loop.stop()
-    loop.close()

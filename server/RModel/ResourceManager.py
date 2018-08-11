@@ -54,7 +54,7 @@ class _Trie:
 
             elif cnt > 1:
                 raise ValueError('more than one way accept this path')
-        logger.info(f'add {path}')
+        print(f'add {path}')
 
     def get(self, req_t: str, path: list):
         if req_t == 'GET':
@@ -67,8 +67,6 @@ class _Trie:
         for part in path:
             cnt = 0
             for child in node.children:
-                if child.regex:
-                    print(child.word.pattern)
                 if child.regex and child.word.match(part):
                     param.update(child.word.match(part).groupdict())
                     node = child
@@ -135,13 +133,12 @@ def register(req_t: str, path: str, require):
             part += char
 
     # logger.debug(parts)
-    print(parts)
 
     def deco(func):
         resources.resources_func.add(req_t, parts, func, require)
         return func
 
-    # logger.debug(f"Added path {path_s} now Resources are {Resources.resources_func}")
+    print(f"Added {req_t} -> {path}")
 
     return deco
 
