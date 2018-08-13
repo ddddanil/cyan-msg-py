@@ -25,13 +25,16 @@ class DataServer:
     async def serv(self):
         while True:
             sock, _ = await self.loop.sock_accept(self.master_socket)
+            logger.info('new connection')
             sock.setblocking(False)
             asyncio.ensure_future(self.handle_connection(sock))
 
     async def recv_request(self, sock, n=-1):
         # get size of new request
         request = b''
-        if n > -1:
+        if n == 0:
+            return request
+        elif n > 0:
             request = await self.loop.sock_recv(sock, n)
             if not request and n != 0:
                 return None, None
@@ -61,5 +64,5 @@ class DataServer:
             if reqest[1] == 'POST':
                 # recv last request data
                 reqest.append(next_req + await self.recv_request(sock, max(0, int(reqest[-1]) - len(next_req))))
-            await self.loop.sock_sendall(sock, )
+            await self.loop.sock_sendall(sock, str(reqest).encode())
             logger.debug(reqest)
