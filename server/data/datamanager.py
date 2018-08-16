@@ -1,8 +1,7 @@
 import asyncio
-import uvloop
 import logging
 import socket
-import logging
+import json
 
 
 logger = logging.getLogger('data.DataServer')
@@ -36,7 +35,7 @@ class DataServer:
             return request
         elif n > 0:
             request = await self.loop.sock_recv(sock, n)
-            if not request and n != 0:
+            if not request:
                 return None, None
         else:
             chunk = b''
@@ -49,20 +48,38 @@ class DataServer:
 
         return request.split(b';', maxsplit=1)
 
+    async def solve(self, request):
+        if request[0] == 'USER':
+            return await self.solve_user(request[1:])
+
+        elif request[0] == 'GROUP':
+            return await self.solve_group(request[1:])
+
+        elif request[0] == 'FILE':
+            return await self.solve_file(request[1:])
+
+    async def solve_user(self, request):
+        pass
+
+    async def solve_group(self, request):
+        pass
+
+    async def solve_file(self, request):
+        pass
+
     async def handle_connection(self, sock):
         next_req = b''
         cur_req = b''
         while True:
             cur_req += next_req
             cur_req, next_req = await self.recv_request(sock)
-            if not cur_req:
+            if cur_req is None:
                 return
-            reqest = cur_req.decode().split()
+            request = cur_req.decode().split()
             # FILE META ID
             # USER META ID
             # USER POST ID
-            if reqest[1] == 'POST':
+            if request[1] == 'POST':
                 # recv last request data
-                reqest.append(next_req + await self.recv_request(sock, max(0, int(reqest[-1]) - len(next_req))))
-            await self.loop.sock_sendall(sock, str(reqest).encode())
-            logger.debug(reqest)
+                request.append(next_req + await self.recv_request(sock, max(0, int(request[-1]) - len(next_req))))
+            logger.debug(request)
