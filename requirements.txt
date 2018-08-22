@@ -1,3 +1,4 @@
+asyncpg
 pytest
 uvloop
 async-timeout
